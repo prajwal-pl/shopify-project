@@ -8,9 +8,34 @@ import { useFetcher } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import prisma from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
+  const shop = session.shop;
+
+  // Initialize default Ring Builder settings if they don't exist
+  const existingSettings = await prisma.appSettings.findUnique({
+    where: { shop },
+  });
+
+  if (!existingSettings) {
+    await prisma.appSettings.create({
+      data: {
+        shop,
+        builderEnabled: true,
+        markupPercent: 0,
+        notifyOnConfig: false,
+        sideStones: JSON.stringify({
+          enabled: false,
+          qualities: [],
+          pricing: {},
+          minQuantity: 0,
+          maxQuantity: 50,
+        }),
+      },
+    });
+  }
 
   return null;
 };
@@ -104,143 +129,98 @@ export default function Index() {
   const generateProduct = () => fetcher.submit({}, { method: "POST" });
 
   return (
-    <s-page heading="React Router app template">
-      <s-button slot="primary-action" onClick={generateProduct}>
-        Generate a product
-      </s-button>
-
-      <s-section heading="Congrats on creating a new Shopify app 🎉">
+    <s-page heading="Ring Builder - Admin Dashboard">
+      <s-section heading="Welcome to Ring Builder! 💍">
         <s-paragraph>
-          This embedded app template uses{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/tools/app-bridge"
-            target="_blank"
-          >
-            App Bridge
-          </s-link>{" "}
-          interface examples like an{" "}
-          <s-link href="/app/additional">additional page in the app nav</s-link>
-          , as well as an{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            Admin GraphQL
-          </s-link>{" "}
-          mutation demo, to provide a starting point for app development.
+          Your custom ring builder app is ready to use. Get started by managing
+          your products and configuring your builder settings.
         </s-paragraph>
       </s-section>
-      <s-section heading="Get started with products">
-        <s-paragraph>
-          Generate a product with GraphQL and get the JSON output for that
-          product. Learn more about the{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
-            target="_blank"
+
+      <s-section heading="Quick Actions">
+        <s-stack direction="block" gap="large">
+          <s-box
+            padding="large"
+            borderWidth="base"
+            borderRadius="base"
+            background="subdued"
           >
-            productCreate
-          </s-link>{" "}
-          mutation in our API references.
-        </s-paragraph>
-        <s-stack direction="inline" gap="base">
-          <s-button
-            onClick={generateProduct}
-            {...(isLoading ? { loading: true } : {})}
-          >
-            Generate a product
-          </s-button>
-          {fetcher.data?.product && (
-            <s-button
-              href={`shopify:admin/products/${productId}`}
-              target="_blank"
-              variant="tertiary"
-            >
-              View product
-            </s-button>
-          )}
-        </s-stack>
-        {fetcher.data?.product && (
-          <s-section heading="productCreate mutation">
             <s-stack direction="block" gap="base">
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.product, null, 2)}</code>
-                </pre>
-              </s-box>
-
-              <s-heading>productVariantsBulkUpdate mutation</s-heading>
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.variant, null, 2)}</code>
-                </pre>
-              </s-box>
+              <s-heading>1. Manage Products</s-heading>
+              <s-paragraph>
+                Mark your Shopify products as ring settings or stones, then add
+                detailed metadata for the builder.
+              </s-paragraph>
+              <s-button href="/app/builder/products" variant="primary">
+                Go to Products →
+              </s-button>
             </s-stack>
-          </s-section>
-        )}
+          </s-box>
+
+          <s-box
+            padding="large"
+            borderWidth="base"
+            borderRadius="base"
+            background="subdued"
+          >
+            <s-stack direction="block" gap="base">
+              <s-heading>2. Configure Builder Settings</s-heading>
+              <s-paragraph>
+                Set up your markup percentage, enable side stones, and customize
+                your builder preferences.
+              </s-paragraph>
+              <s-button href="/app/builder/settings" variant="primary">
+                Go to Settings →
+              </s-button>
+            </s-stack>
+          </s-box>
+
+          <s-box
+            padding="large"
+            borderWidth="base"
+            borderRadius="base"
+            background="subdued"
+          >
+            <s-stack direction="block" gap="base">
+              <s-heading>3. Import Stones (CSV)</s-heading>
+              <s-paragraph>
+                Bulk import your diamond inventory using CSV for faster setup.
+              </s-paragraph>
+              <s-button href="/app/builder/products" variant="secondary">
+                Import CSV →
+              </s-button>
+            </s-stack>
+          </s-box>
+        </s-stack>
       </s-section>
 
-      <s-section slot="aside" heading="App template specs">
-        <s-paragraph>
-          <s-text>Framework: </s-text>
-          <s-link href="https://reactrouter.com/" target="_blank">
-            React Router
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Interface: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/app-home/using-polaris-components"
-            target="_blank"
-          >
-            Polaris web components
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>API: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            GraphQL
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Database: </s-text>
-          <s-link href="https://www.prisma.io/" target="_blank">
-            Prisma
-          </s-link>
-        </s-paragraph>
+      <s-section slot="aside" heading="Getting Started">
+        <s-stack direction="block" gap="base">
+          <s-paragraph>
+            <strong>Step 1:</strong> Mark products as Settings or Stones
+          </s-paragraph>
+          <s-paragraph>
+            <strong>Step 2:</strong> Add metadata (prices, specs, etc.)
+          </s-paragraph>
+          <s-paragraph>
+            <strong>Step 3:</strong> Configure builder settings
+          </s-paragraph>
+          <s-paragraph>
+            <strong>Step 4:</strong> Add to your storefront theme
+          </s-paragraph>
+        </s-stack>
       </s-section>
 
-      <s-section slot="aside" heading="Next steps">
+      <s-section slot="aside" heading="Documentation">
         <s-unordered-list>
           <s-list-item>
-            Build an{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/getting-started/build-app-example"
-              target="_blank"
-            >
-              example app
-            </s-link>
+            <s-text>Setup Guide: docs/MERCHANT_SETUP.md</s-text>
           </s-list-item>
           <s-list-item>
-            Explore Shopify&apos;s API with{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-              target="_blank"
-            >
-              GraphiQL
-            </s-link>
+            <s-text>API Testing: docs/API_TESTING.md</s-text>
+          </s-list-item>
+          <s-list-item>
+            <s-text>Testing Guide: TESTING_GUIDE_START_HERE.md</s-text>
           </s-list-item>
         </s-unordered-list>
       </s-section>

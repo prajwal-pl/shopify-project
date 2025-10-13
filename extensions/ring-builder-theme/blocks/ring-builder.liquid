@@ -1,0 +1,141 @@
+{% comment %}
+  Ring Builder App Block
+
+  Embeds the Ring Builder into your Shopify theme.
+  Customers can build custom rings in 4 easy steps.
+{% endcomment %}
+
+<div class="ring-builder-container" data-shop="{{ shop.permanent_domain }}">
+  {% if block.settings.show_heading %}
+    <h1 class="ring-builder-heading">{{ block.settings.heading }}</h1>
+  {% endif %}
+
+  <div id="ring-builder-app" class="ring-builder-app">
+    <div class="ring-builder-loading">
+      <div class="spinner"></div>
+      <p>Loading Ring Builder...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize Ring Builder
+  (function() {
+    const shop = "{{ shop.permanent_domain }}";
+    const container = document.getElementById('ring-builder-app');
+
+    // For MVP: Load builder via iframe from app
+    // This is the simplest approach for testing
+    const appUrl = "{{ app.url }}";
+
+    if (container) {
+      container.innerHTML = `
+        <iframe
+          src="${appUrl}/builder?shop=${shop}"
+          style="width: 100%; min-height: 800px; border: none; border-radius: 8px;"
+          title="Ring Builder"
+          id="ring-builder-iframe"
+        ></iframe>
+      `;
+
+      // Auto-resize iframe
+      window.addEventListener('message', function(e) {
+        if (e.data.type === 'ring-builder-resize') {
+          const iframe = document.getElementById('ring-builder-iframe');
+          if (iframe) {
+            iframe.style.height = e.data.height + 'px';
+          }
+        }
+      });
+    }
+  })();
+</script>
+
+<style>
+  .ring-builder-container {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .ring-builder-heading {
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 32px;
+    color: #111827;
+  }
+
+  .ring-builder-app {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .ring-builder-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #d4af37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .ring-builder-loading p {
+    margin-top: 16px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .ring-builder-container {
+      padding: 0 16px;
+      margin: 20px auto;
+    }
+
+    .ring-builder-heading {
+      font-size: 24px;
+    }
+
+    .ring-builder-app iframe {
+      min-height: 600px !important;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Ring Builder",
+  "target": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "Show Heading",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading Text",
+      "default": "Build Your Dream Ring"
+    }
+  ]
+}
+{% endschema %}
+

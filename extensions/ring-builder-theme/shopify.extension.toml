@@ -1,0 +1,16 @@
+# Theme App Extension Configuration
+# This extension adds the Ring Builder to your Shopify storefront
+
+api_version = "2024-10"
+
+[[extensions]]
+uid = "f2f5a778-a1ef-872a-b744-85d1d524626b3292d862"
+type = "theme"
+name = "Ring Builder"
+handle = "ring-builder"
+
+  [[extensions.app_blocks]]
+  type = "app-block"
+  name = "Ring Builder"
+  handle = "ring-builder-block"
+

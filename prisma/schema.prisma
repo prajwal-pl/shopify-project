@@ -30,3 +30,188 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
+
+// ============================================================================
+// RING BUILDER MODELS
+// ============================================================================
+
+// Enum for configuration status
+enum ConfigurationStatus {
+  in_progress
+  completed
+  ordered
+}
+
+// Configuration: Stores customer ring configurations
+model Configuration {
+  id            String  @id @default(cuid())
+  shop          String // Multi-tenant isolation
+  customerId    String? // Shopify Customer GID (if logged in)
+  customerEmail String? // Customer email
+
+  // Selected products
+  settingId String // Shopify Product GID for setting
+  stoneId   String // Shopify Product GID for stone
+
+  // Configuration details
+  metalType String // Selected metal type (e.g., "14k_white_gold")
+  ringSize  String // Selected ring size (e.g., "7")
+
+  // Side stones (if applicable, stored as JSON)
+  sideStonesConfig String? // JSON: { quality: "Premium", quantity: 12, price: 500 }
+
+  // Pricing breakdown
+  settingPrice    Float // Price of setting with selected metal
+  stonePrice      Float // Price of stone
+  sideStonesPrice Float? // Price of side stones (if applicable)
+  totalPrice      Float // Final total price (with markup)
+
+  // Status and metadata
+  status          ConfigurationStatus @default(in_progress)
+  configurationId String              @unique // Human-readable ID (e.g., CONFIG-20251012-ABC123)
+  cartItemId      String? // Shopify cart item ID (if added to cart)
+  shareToken      String? // Token for sharing configuration (future feature)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for performance
+  @@index([shop, customerId])
+  @@index([shop, status])
+  @@index([shop, createdAt])
+  @@index([configurationId])
+}
+
+// SettingMetadata: Stores ring setting attributes
+model SettingMetadata {
+  id        String @id @default(cuid())
+  shop      String // Multi-tenant isolation
+  productId String @unique // Shopify Product GID
+
+  // Setting attributes
+  style         String // Setting style (e.g., "solitaire", "halo")
+  settingHeight String? // Height: "low", "medium", "high"
+
+  // Compatible stone shapes (stored as JSON array)
+  compatibleShapes String // JSON array: ["round", "princess", "cushion"]
+
+  // Base prices by metal type (stored as JSON)
+  basePrices String // JSON: { "14k_white_gold": 500, "14k_yellow_gold": 550, ... }
+
+  // Images (Shopify product images as JSON array of URLs)
+  images String? // JSON array: ["https://cdn.shopify.com/..."]
+
+  // Featured flag
+  featured Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([shop, style])
+  @@index([shop, featured])
+  @@index([productId])
+}
+
+// StoneMetadata: Stores diamond/gemstone specifications
+model StoneMetadata {
+  id        String @id @default(cuid())
+  shop      String // Multi-tenant isolation
+  productId String @unique // Shopify Product GID
+
+  // Stone basic info
+  stoneType String // "diamond", "sapphire", "ruby", etc.
+  shape     String // "round", "princess", "cushion", etc.
+
+  // 4 Cs for diamonds
+  carat   Float // Carat weight (e.g., 1.50)
+  cut     String? // Cut grade (e.g., "excellent", "very_good")
+  color   String? // Color grade (e.g., "d", "e", "f")
+  clarity String? // Clarity grade (e.g., "vvs1", "vs1")
+
+  // Certification
+  certificate       String? // Certificate type (e.g., "gia", "ags")
+  certificateNumber String? // Certificate number
+  certificateUrl    String? // URL to certificate PDF
+
+  // Detailed measurements
+  measurements String? // Format: "7.35 x 7.40 x 4.50" (mm)
+  tablePercent Float? // Table percentage
+  depthPercent Float? // Depth percentage
+
+  // Additional quality attributes
+  polish       String? // Polish grade
+  symmetry     String? // Symmetry grade
+  fluorescence String? // Fluorescence level
+
+  // Images (Shopify product images as JSON array)
+  images String? // JSON array of image URLs
+
+  // Pricing and availability
+  price     Float // Stone price
+  available Boolean @default(true) // Availability flag
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for filtering and search
+  @@index([shop, shape, carat])
+  @@index([shop, available])
+  @@index([shop, price])
+  @@index([shop, stoneType])
+  @@index([productId])
+}
+
+// AppSettings: Stores merchant configuration
+model AppSettings {
+  id   String @id @default(cuid())
+  shop String @unique // One settings record per shop
+
+  // General settings
+  builderEnabled Boolean @default(true)
+
+  // Side stones configuration (stored as JSON)
+  // Format: { enabled: true, qualities: ["Good", "Better", "Best"], pricing: { "Good": 50, "Better": 75, "Best": 100 }, minQuantity: 0, maxQuantity: 50 }
+  sideStones String? // JSON string
+
+  // Pricing rules
+  engravingFee  Float? // Engraving fee (if applicable, future feature)
+  markupPercent Float  @default(0) // Markup percentage (e.g., 5 for 5%)
+
+  // Notification settings
+  notifyOnConfig    Boolean @default(false) // Email notification on configuration save
+  notificationEmail String? // Email to receive notifications
+
+  // Customization (colors for storefront builder)
+  primaryColor String? // Hex color (e.g., "#000000")
+  accentColor  String? // Hex color (e.g., "#D4AF37")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// AnalyticsEvent: Stores basic tracking events (optional for MVP)
+model AnalyticsEvent {
+  id   String @id @default(cuid())
+  shop String // Multi-tenant isolation
+
+  // Event details
+  eventType       String // Event type (e.g., "builder_started", "setting_selected", "cart_added")
+  configurationId String? // Related configuration ID (if applicable)
+  customerId      String? // Customer ID (if logged in)
+
+  // Event data (stored as JSON for flexibility)
+  eventData String? // JSON: { step: 1, settingId: "...", ... }
+
+  // Timestamp
+  timestamp DateTime @default(now())
+
+  // Indexes
+  @@index([shop, eventType])
+  @@index([shop, configurationId])
+  @@index([shop, timestamp])
+}

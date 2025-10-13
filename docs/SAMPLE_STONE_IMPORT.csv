@@ -1,0 +1,7 @@
+productId,stoneType,shape,carat,cut,color,clarity,price,certificate,certificateNumber,certificateUrl,measurements,tablePercent,depthPercent,polish,symmetry,fluorescence
+gid://shopify/Product/1001,diamond,round,1.50,excellent,g,vs1,5000,gia,2141234567,https://example.com/cert1,7.35 x 7.40 x 4.50,58.5,61.2,excellent,excellent,none
+gid://shopify/Product/1002,diamond,princess,1.25,very_good,f,vvs2,7500,gia,2141234568,,7.10 x 7.15 x 4.80,60.0,62.5,very_good,excellent,faint
+gid://shopify/Product/1003,diamond,cushion,2.00,excellent,e,vs2,12000,ags,AGS1234,,8.00 x 8.05 x 5.20,59.0,63.0,excellent,very_good,none
+gid://shopify/Product/1004,sapphire,oval,1.75,excellent,,,4500,igi,IGI5678,,8.50 x 6.20 x 4.10,,,excellent,good,none
+gid://shopify/Product/1005,diamond,emerald,1.00,very_good,h,si1,3200,gia,2141234569,,6.80 x 5.00 x 3.50,62.0,65.0,good,good,medium
+
