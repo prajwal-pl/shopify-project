@@ -1,10 +1,16 @@
 /**
- * Stone Filters Component
+ * Stone Filters Component - Phase 2.0 Enhanced
  *
- * Advanced filters for stone selection (4Cs, price, certification).
+ * Advanced filters for stone selection with icon-based UI.
+ *
+ * Phase 2.0 Features:
+ * - Icon-based shape filters
+ * - Diamond type support (via DiamondTypeTabs in parent)
+ * - Burgundy accent colors
+ * - Enhanced visual design
  */
 
-import React from "react";
+import { IconFilter, type IconFilterItem } from "./IconFilter";
 import { FilterGroup } from "../shared/FilterGroup";
 import { RangeSlider } from "../shared/RangeSlider";
 import {
@@ -14,36 +20,47 @@ import {
   CLARITY_GRADES,
   CERTIFICATION_TYPES,
 } from "~/utils/constants";
-import { formatPrice, formatCarat } from "~/utils/formatters";
+import { formatPrice } from "~/utils/formatters";
+import type { StoneFilters as StoneFiltersType } from "~/types/builder";
 
 interface StoneFiltersProps {
-  filters: any;
-  onFilterChange: (filters: any) => void;
+  filters: Partial<StoneFiltersType>;
+  onFilterChange: (filters: Partial<StoneFiltersType>) => void;
 }
 
 export function StoneFilters({ filters, onFilterChange }: StoneFiltersProps) {
+  // Convert shapes to IconFilterItem format
+  const shapeItems: IconFilterItem[] = STONE_SHAPES.map((shape) => ({
+    value: shape.value,
+    label: shape.label,
+  }));
+
   return (
     <div className="stone-filters">
       <div className="filters-header">
-        <h3>Filter Stones</h3>
+        <h3>Filter Diamonds</h3>
       </div>
 
-      <div className="filters-grid">
-        <FilterGroup
-          title="Shape"
-          options={STONE_SHAPES as any}
+      <div className="filters-content">
+        {/* Phase 2.0: Icon-based shape filter */}
+        <IconFilter
+          items={shapeItems}
           selected={filters.shape || []}
           onChange={(selected) =>
-            onFilterChange({ ...filters, shape: selected })
+            onFilterChange({ ...filters, shape: selected as any })
           }
           multiSelect
+          label="Shape"
+          iconType="shape"
         />
 
         <FilterGroup
           title="Cut Grade"
           options={CUT_GRADES as any}
           selected={filters.cut || []}
-          onChange={(selected) => onFilterChange({ ...filters, cut: selected })}
+          onChange={(selected) =>
+            onFilterChange({ ...filters, cut: selected as any })
+          }
           multiSelect
         />
 
@@ -52,7 +69,7 @@ export function StoneFilters({ filters, onFilterChange }: StoneFiltersProps) {
           options={COLOR_GRADES as any}
           selected={filters.color || []}
           onChange={(selected) =>
-            onFilterChange({ ...filters, color: selected })
+            onFilterChange({ ...filters, color: selected as any })
           }
           multiSelect
         />
@@ -62,7 +79,7 @@ export function StoneFilters({ filters, onFilterChange }: StoneFiltersProps) {
           options={CLARITY_GRADES as any}
           selected={filters.clarity || []}
           onChange={(selected) =>
-            onFilterChange({ ...filters, clarity: selected })
+            onFilterChange({ ...filters, clarity: selected as any })
           }
           multiSelect
         />
@@ -72,7 +89,7 @@ export function StoneFilters({ filters, onFilterChange }: StoneFiltersProps) {
           options={CERTIFICATION_TYPES as any}
           selected={filters.certification || []}
           onChange={(selected) =>
-            onFilterChange({ ...filters, certification: selected })
+            onFilterChange({ ...filters, certification: selected as any })
           }
           multiSelect
         />
@@ -109,39 +126,40 @@ export function StoneFilters({ filters, onFilterChange }: StoneFiltersProps) {
       <style>{`
         .stone-filters {
           background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
-          padding: 24px;
-          margin-bottom: 24px;
+          border: 1px solid #e0e0e0;
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 2rem;
         }
 
         .filters-header {
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #e5e5e5;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid #e0e0e0;
         }
 
         .filters-header h3 {
-          font-size: 18px;
-          font-weight: 600;
-          color: #202223;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #333;
           margin: 0;
+        }
+
+        .filters-content {
+          margin-bottom: 1.5rem;
         }
 
         .filters-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 24px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.5rem;
+          margin-top: 1.5rem;
         }
 
-        .range-filters {
-          grid-column: 1 / -1;
-        }
-
-        @media (max-width: 1024px) {
-          .filters-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
+        .range-filters-section {
+          margin-top: 1.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid #e0e0e0;
         }
 
         @media (max-width: 768px) {

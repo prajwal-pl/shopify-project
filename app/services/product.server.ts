@@ -231,6 +231,11 @@ export async function getStones(
     where.shape = { in: filters.shape };
   }
 
+  // Phase 2.0: Diamond type filter
+  if (filters?.diamondType && filters.diamondType.length > 0) {
+    where.diamondType = { in: filters.diamondType };
+  }
+
   if (filters?.caratMin !== undefined || filters?.caratMax !== undefined) {
     where.carat = {};
     if (filters.caratMin !== undefined) {
@@ -310,6 +315,7 @@ export async function getStones(
       cut: metadata.cut as any,
       color: metadata.color as any,
       clarity: metadata.clarity as any,
+      diamondType: metadata.diamondType as any, // Phase 2.0: Diamond type categorization
       certificate: metadata.certificate as any,
       certificateNumber: metadata.certificateNumber || undefined,
       certificateUrl: metadata.certificateUrl || undefined,
@@ -362,6 +368,7 @@ export async function getStone(
     cut: metadata.cut as any,
     color: metadata.color as any,
     clarity: metadata.clarity as any,
+    diamondType: metadata.diamondType as any, // Phase 2.0: Diamond type categorization
     certificate: metadata.certificate as any,
     certificateNumber: metadata.certificateNumber || undefined,
     certificateUrl: metadata.certificateUrl || undefined,
@@ -407,6 +414,7 @@ export async function getStoneByProductId(
     cut: metadata.cut as any,
     color: metadata.color as any,
     clarity: metadata.clarity as any,
+    diamondType: metadata.diamondType as any, // Phase 2.0: Diamond type categorization
     certificate: metadata.certificate as any,
     certificateNumber: metadata.certificateNumber || undefined,
     certificateUrl: metadata.certificateUrl || undefined,

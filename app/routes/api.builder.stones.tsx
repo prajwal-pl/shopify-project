@@ -1,13 +1,20 @@
 /**
- * Builder API: Stones
+ * Builder API: Stones - Phase 2.0 Enhanced
  *
  * Public endpoint for fetching stones with advanced filters.
  * No authentication required - customer-facing.
+ *
+ * Phase 2.0 Additions:
+ * - Diamond type filtering (mined/lab_grown/fancy_color)
+ * - Diamond type counts for tab badges
+ * - SKU search
+ * - Per page selector (12, 20, 50, 100)
  */
 
 import type { LoaderFunctionArgs } from "react-router";
 import { getStones, getStoneFilterOptions } from "~/services/product.server";
 import type { StoneFilters, StoneSortOptions } from "~/types/builder";
+import prisma from "~/db.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -28,6 +35,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const shapeParam = url.searchParams.get("shape");
   if (shapeParam) {
     filters.shape = shapeParam.split(",") as any[];
+  }
+
+  // Phase 2.0: Diamond type filter
+  const diamondTypeParam = url.searchParams.get("diamondType");
+  if (diamondTypeParam) {
+    filters.diamondType = diamondTypeParam.split(",") as any[];
   }
 
   const caratMin = url.searchParams.get("caratMin");
@@ -89,6 +102,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const page = parseInt(url.searchParams.get("page") || "1");
 
+  // Phase 2.0: Per page selector
+  const perPage = parseInt(url.searchParams.get("perPage") || "20");
+
+  // Phase 2.0: SKU search
+  const skuSearch = url.searchParams.get("sku");
+
   try {
     // Fetch stones
     const { stones, totalCount, hasNextPage } = await getStones(
@@ -100,6 +119,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Get filter options
     const filterOptions = await getStoneFilterOptions(shop);
+
+    // Phase 2.0: Get diamond type counts for tab badges
+    const [minedCount, labGrownCount, fancyColorCount] = await Promise.all([
+      prisma.stoneMetadata.count({
+        where: { shop, diamondType: "mined", available: true },
+      }),
+      prisma.stoneMetadata.count({
+        where: { shop, diamondType: "lab_grown", available: true },
+      }),
+      prisma.stoneMetadata.count({
+        where: { shop, diamondType: "fancy_color", available: true },
+      }),
+    ]);
 
     return Response.json({
       stones,
@@ -116,6 +148,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
         currentPage: page,
         totalItems: totalCount,
         hasNextPage,
+        perPage,
+      },
+      // Phase 2.0: Diamond type counts for tabs
+      diamondTypeCounts: {
+        mined: minedCount,
+        lab_grown: labGrownCount,
+        fancy_color: fancyColorCount,
       },
     });
   } catch (error: any) {

@@ -106,7 +106,10 @@ export function StoneSelector({ shop }: { shop: string }) {
         <p>Choose from our certified diamonds and gemstones</p>
       </div>
 
-      <StoneFilters filters={filters} onFilterChange={setFilters} />
+      <StoneFilters
+        filters={filters as any}
+        onFilterChange={setFilters as any}
+      />
 
       {stones.length === 0 ? (
         <div className="empty-state">

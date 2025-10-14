@@ -37,6 +37,25 @@ export type {
 };
 
 // ============================================================================
+// PHASE 2.0 TYPE ADDITIONS
+// ============================================================================
+
+/**
+ * Diamond type categorization for tabs (Phase 2.0)
+ */
+export type DiamondType = "mined" | "lab_grown" | "fancy_color";
+
+/**
+ * Customer inquiry types (Phase 2.0)
+ */
+export type InquiryType = "hint" | "info" | "viewing" | "email";
+
+/**
+ * Inquiry status for tracking (Phase 2.0)
+ */
+export type InquiryStatus = "new" | "contacted" | "closed";
+
+// ============================================================================
 // CONFIGURATION TYPES
 // ============================================================================
 
@@ -74,6 +93,16 @@ export interface CreateConfigurationInput {
 export interface UpdateConfigurationInput {
   status?: ConfigurationStatus;
   cartItemId?: string;
+}
+
+/**
+ * Saved configuration interface (Phase 2.0)
+ * Used for shareable configurations with tokens
+ */
+export interface SavedConfiguration extends Configuration {
+  shareToken: string; // Required for saved configs
+  savedAt: Date;
+  shareCount: number;
 }
 
 /**
@@ -194,6 +223,7 @@ export interface Stone {
   cut?: CutGrade;
   color?: ColorGrade;
   clarity?: ClarityGrade;
+  diamondType: DiamondType; // Phase 2.0: Mined/Lab Grown/Fancy Color
   certificate?: CertificationType;
   certificateNumber?: string;
   certificateUrl?: string;
@@ -222,6 +252,7 @@ export interface StoneFilters {
   priceMax?: number;
   certification?: CertificationType[];
   available?: boolean;
+  diamondType?: DiamondType[]; // Phase 2.0: Filter by diamond type
 }
 
 /**
@@ -260,8 +291,44 @@ export interface ParsedAppSettings {
   notificationEmail?: string;
   primaryColor?: string;
   accentColor?: string;
+  // Phase 2.0 feature settings
+  customerEngagement?: CustomerEngagementSettings;
+  virtualTryOn?: VirtualTryOnSettings;
+  socialSharing?: SocialSharingSettings;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Customer engagement settings (Phase 2.0)
+ */
+export interface CustomerEngagementSettings {
+  dropHintEnabled: boolean;
+  requestInfoEnabled: boolean;
+  emailFriendEnabled: boolean;
+  scheduleViewingEnabled: boolean;
+  notificationEmail?: string;
+  responseTemplates?: Record<string, string>;
+}
+
+/**
+ * Virtual try-on settings (Phase 2.0)
+ */
+export interface VirtualTryOnSettings {
+  enabled: boolean;
+  integrationType: "none" | "simple_upload" | "third_party" | "ar_quicklook";
+  apiKey?: string;
+  apiUrl?: string;
+  buttonLabel?: string;
+}
+
+/**
+ * Social sharing settings (Phase 2.0)
+ */
+export interface SocialSharingSettings {
+  facebookAppId?: string;
+  enabledPlatforms: string[]; // ["facebook", "twitter", "pinterest"]
+  defaultMessage?: string;
 }
 
 /**
@@ -319,6 +386,30 @@ export interface AnalyticsEventData {
   configurationId?: string;
   error?: string;
   [key: string]: any;
+}
+
+// ============================================================================
+// CUSTOMER INQUIRY TYPES (PHASE 2.0)
+// ============================================================================
+
+/**
+ * Customer inquiry data (Phase 2.0)
+ */
+export interface CustomerInquiry {
+  id: string;
+  shop: string;
+  type: InquiryType;
+  configurationId?: string;
+  productId?: string;
+  customerName?: string;
+  customerEmail: string;
+  customerPhone?: string;
+  message?: string;
+  preferredDate?: Date;
+  preferredTime?: string;
+  status: InquiryStatus;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ============================================================================

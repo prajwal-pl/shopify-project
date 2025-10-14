@@ -6,12 +6,15 @@
  */
 
 // ============================================================================
-// METAL TYPES
+// METAL TYPES (Phase 2.0: Expanded to 7 types)
 // ============================================================================
 
 export const METAL_TYPES = [
   { value: "14k_white_gold", label: "14K White Gold" },
   { value: "14k_yellow_gold", label: "14K Yellow Gold" },
+  { value: "14k_rose_gold", label: "14K Rose Gold" }, // Phase 2.0: Added
+  { value: "18k_white_gold", label: "18K White Gold" }, // Phase 2.0: Added
+  { value: "18k_yellow_gold", label: "18K Yellow Gold" }, // Phase 2.0: Added
   { value: "18k_rose_gold", label: "18K Rose Gold" },
   { value: "platinum", label: "Platinum" },
 ] as const;

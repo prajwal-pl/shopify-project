@@ -1,8 +1,11 @@
 /**
  * Webhook: products/delete
  *
- * Handles product deletion events from Shopify.
+ * Phase 2.0: Handles product deletion events from Shopify.
  * Removes SettingMetadata or StoneMetadata when products are deleted.
+ *
+ * Note: Metafields are automatically deleted by Shopify when a product
+ * is deleted, so we only need to clean up our app database cache.
  */
 
 import type { ActionFunctionArgs } from "react-router";

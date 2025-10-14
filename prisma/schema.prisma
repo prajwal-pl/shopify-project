@@ -70,7 +70,11 @@ model Configuration {
   status          ConfigurationStatus @default(in_progress)
   configurationId String              @unique // Human-readable ID (e.g., CONFIG-20251012-ABC123)
   cartItemId      String? // Shopify cart item ID (if added to cart)
-  shareToken      String? // Token for sharing configuration (future feature)
+
+  // Phase 2.0: Save & Share functionality
+  shareToken String?   @unique // Token for sharing configuration (8-12 characters)
+  shareCount Int       @default(0) // Track share analytics
+  savedAt    DateTime? // When configuration was saved (vs completed)
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -81,6 +85,7 @@ model Configuration {
   @@index([shop, status])
   @@index([shop, createdAt])
   @@index([configurationId])
+  @@index([shareToken]) // Phase 2.0: Fast lookup for shareable URLs
 }
 
 // SettingMetadata: Stores ring setting attributes
@@ -131,6 +136,9 @@ model StoneMetadata {
   color   String? // Color grade (e.g., "d", "e", "f")
   clarity String? // Clarity grade (e.g., "vvs1", "vs1")
 
+  // Phase 2.0: Diamond type categorization (Mined/Lab Grown/Fancy Color)
+  diamondType String @default("mined") // "mined" | "lab_grown" | "fancy_color"
+
   // Certification
   certificate       String? // Certificate type (e.g., "gia", "ags")
   certificateNumber String? // Certificate number
@@ -162,6 +170,7 @@ model StoneMetadata {
   @@index([shop, available])
   @@index([shop, price])
   @@index([shop, stoneType])
+  @@index([shop, diamondType]) // Phase 2.0: For diamond type tab filtering
   @@index([productId])
 }
 
@@ -189,6 +198,11 @@ model AppSettings {
   primaryColor String? // Hex color (e.g., "#000000")
   accentColor  String? // Hex color (e.g., "#D4AF37")
 
+  // Phase 2.0: Feature settings (stored as JSON)
+  customerEngagement String? // JSON: { dropHintEnabled, requestInfoEnabled, notificationEmail, etc. }
+  virtualTryOn       String? // JSON: { enabled, integrationType, apiKey, buttonLabel, etc. }
+  socialSharing      String? // JSON: { facebookAppId, enabledPlatforms, defaultMessage, etc. }
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -214,4 +228,41 @@ model AnalyticsEvent {
   @@index([shop, eventType])
   @@index([shop, configurationId])
   @@index([shop, timestamp])
+}
+
+// ============================================================================
+// PHASE 2.0 MODELS
+// ============================================================================
+
+// CustomerInquiry: Stores customer engagement actions (Phase 2.0)
+model CustomerInquiry {
+  id   String @id @default(cuid())
+  shop String // Multi-tenant isolation
+
+  // Inquiry details
+  type            String // "hint" | "info" | "viewing" | "email"
+  configurationId String? // Related configuration (optional)
+  productId       String? // Related product (optional)
+
+  // Customer information
+  customerName  String?
+  customerEmail String // Required
+  customerPhone String?
+  message       String?
+
+  // Scheduling (for viewing appointments)
+  preferredDate DateTime?
+  preferredTime String? // Store as string (e.g., "2:00 PM")
+
+  // Status tracking
+  status String @default("new") // "new" | "contacted" | "closed"
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for admin dashboard queries
+  @@index([shop, type])
+  @@index([shop, status])
+  @@index([shop, createdAt])
 }

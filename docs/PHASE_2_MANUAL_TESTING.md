@@ -1,600 +1,754 @@
 # Phase 2.0 Manual Testing Guide
 
-**Admin Product Management Interface**  
-**Date:** October 12, 2025  
-**Server:** http://localhost:62354  
-**Cloudflare URL:** https://schedules-paradise-opera-funeral.trycloudflare.com
+**Version:** 1.0  
+**Date:** October 14, 2025  
+**Phase:** 2.0 - Metafields Architecture & GemFind Feature Parity  
+**Prerequisites:** App installed, products added, migrations run
 
 ---
 
-## Prerequisites
+## 🎯 TESTING OVERVIEW
 
-1. Dev server running: `npm run dev`
-2. Shopify Partner account logged in
-3. Dev store: builder-store-103.myshopify.com
-4. Admin access to embedded app
+This guide covers manual testing for all Phase 2.0 features. Follow each section sequentially for complete validation.
 
----
-
-## Test Suite 1: Admin Dashboard
-
-### 1.1 Access Dashboard
-
-**Steps:**
-
-1. Navigate to: http://localhost:62354/app/builder
-2. Should redirect to Shopify admin with embedded app
-3. Dashboard should load
-
-**Expected Results:**
-
-- ✅ Dashboard displays with "Ring Builder Dashboard" heading
-- ✅ Shows 3 stat cards (Settings, Stones, Configurations)
-- ✅ All counts show "0" (initial state)
-- ✅ Quick action cards present
-- ✅ Navigation sidebar visible (Dashboard, Products, Settings)
-
-**Validation:**
-
-```
-✓ Dashboard loads
-✓ Statistics display correctly
-✓ Navigation present
-✓ No console errors
-```
+**Total Testing Time:** ~2-3 hours  
+**Required Setup:** Development environment OR staging deployment
 
 ---
 
-## Test Suite 2: Products Listing
+## 📋 PRE-TESTING CHECKLIST
 
-### 2.1 View Products List
+### Environment Setup
 
-**Steps:**
+- [ ] App is running (`npm run dev` OR deployed to staging)
+- [ ] Database migrations applied (`npx prisma migrate status`)
+- [ ] At least 5 settings added via admin UI
+- [ ] At least 20 stones added via admin UI (mix of diamond types)
+- [ ] Shop parameter available for testing
 
-1. Click "Products" in navigation
-2. Or navigate to: http://localhost:62354/app/builder/products
+### Test Data Requirements
 
-**Expected Results:**
+**Minimum Products:**
 
-- ✅ Products grid loads
-- ✅ Shows Shopify products from your store
-- ✅ Each product card shows:
-  - Product image (or placeholder)
-  - Product title
-  - Price
-  - SKU (if available)
-  - "Mark as Setting" and "Mark as Stone" buttons (for unmarked products)
-
-**Validation:**
-
-```
-✓ Products load from Shopify
-✓ Product cards render correctly
-✓ Images display
-✓ Buttons are clickable
-```
-
-### 2.2 Test Search Filter
-
-**Steps:**
-
-1. Type product name in search box
-2. Products should filter in real-time
-
-**Expected Results:**
-
-- ✅ Only matching products shown
-- ✅ Filter updates as you type
-- ✅ Case-insensitive search
-
-**Validation:**
-
-```
-✓ Search filters products
-✓ No delay/lag
-```
-
-### 2.3 Test Type Filter
-
-**Steps:**
-
-1. Select "Settings Only" from dropdown
-2. Select "Stones Only"
-3. Select "Unmarked Only"
-
-**Expected Results:**
-
-- ✅ Products filter by type
-- ✅ Counts update correctly
-
-**Validation:**
-
-```
-✓ Type filter works
-✓ Shows correct products
-```
+- 5 settings (various styles: Solitaire, Halo, Vintage, etc.)
+- 10 mined diamonds
+- 5 lab grown diamonds
+- 5 fancy color diamonds
+- Mix of shapes (Round, Princess, Oval, etc.)
+- Mix of carats (0.5 - 3.0 ct)
 
 ---
 
-## Test Suite 3: Mark Products
+## 1️⃣ ADMIN: PRODUCT MANAGEMENT UI
 
-### 3.1 Mark Product as Setting
+### Test 1.1: Product Dashboard
 
-**Steps:**
+**URL:** `/app/builder/products`
 
-1. Find an unmarked product
-2. Click "Mark as Setting" button
-3. Button should show loading state
-4. Page should refresh
+| Step | Action                           | Expected Result                               | Pass/Fail |
+| ---- | -------------------------------- | --------------------------------------------- | --------- |
+| 1    | Navigate to admin products page  | Dashboard loads with product list             | [ ]       |
+| 2    | Check status indicators          | See ✓ (Active), ⚠ (Incomplete), ○ (Unmarked) | [ ]       |
+| 3    | Verify product cards show        | Images 150x150px, title, SKU, status          | [ ]       |
+| 4    | Check "Sync from Shopify" button | Button visible in header                      | [ ]       |
+| 5    | Expand "Advanced Tools"          | CSV import visible inside section             | [ ]       |
 
-**Expected Results:**
+### Test 1.2: Add Diamond Modal
 
-- ✅ Product now shows "⚙️ Setting" badge
-- ✅ Buttons change to "Edit Metadata" link
-- ✅ Database has SettingMetadata record
+**Action:** Click "Add as Diamond" on unmarked product
 
-**Validation:**
+| Step | Action                          | Expected Result                        | Pass/Fail |
+| ---- | ------------------------------- | -------------------------------------- | --------- |
+| 1    | Click "Add as Diamond" button   | Modal opens with form                  | [ ]       |
+| 2    | Verify product preview          | Shows image, title, price from Shopify | [ ]       |
+| 3    | Check shape selector            | 10 icon buttons displayed              | [ ]       |
+| 4    | Select shape (e.g., Round)      | Icon highlights with border            | [ ]       |
+| 5    | Enter carat weight (e.g., 1.50) | Number input accepts decimals          | [ ]       |
+| 6    | Select diamond type (Mined)     | Radio button selects                   | [ ]       |
+| 7    | Select Cut, Color, Clarity      | Dropdowns work correctly               | [ ]       |
+| 8    | Enter certificate info          | GIA, certificate number, URL accepted  | [ ]       |
+| 9    | Click "Save Diamond Specs"      | Success message appears                | [ ]       |
+| 10   | Verify product status changes   | Shows ✓ Active with diamond specs      | [ ]       |
+
+**Test Validation:**
+
+- [ ] Try saving without required fields → Shows validation errors
+- [ ] Enter invalid carat (e.g., "abc") → Shows error
+- [ ] Verify data saved to database (Prisma Studio)
+- [ ] Verify metafields written to Shopify
+
+### Test 1.3: Add Setting Modal
+
+**Action:** Click "Add as Setting" on unmarked product
+
+| Step | Action                        | Expected Result                   | Pass/Fail |
+| ---- | ----------------------------- | --------------------------------- | --------- |
+| 1    | Click "Add as Setting" button | Modal opens with form             | [ ]       |
+| 2    | Select style from dropdown    | Solitaire, Halo, etc. available   | [ ]       |
+| 3    | Select compatible shapes      | Multiple checkboxes with icons    | [ ]       |
+| 4    | Check metal pricing table     | 7 rows (14K, 18K, Platinum)       | [ ]       |
+| 5    | Enter prices for all metals   | Number inputs accept values       | [ ]       |
+| 6    | Select setting height         | Low/Medium/High dropdown          | [ ]       |
+| 7    | Click "Save Setting Specs"    | Success message appears           | [ ]       |
+| 8    | Verify product status changes | Shows ✓ Active with setting specs | [ ]       |
+
+**Test Validation:**
+
+- [ ] Try saving without metal prices → Shows validation errors
+- [ ] Try saving without compatible shapes → Shows error
+- [ ] Verify data saved to database
+- [ ] Verify metafields written to Shopify
+
+### Test 1.4: Edit Existing Product
+
+| Step | Action                               | Expected Result                | Pass/Fail |
+| ---- | ------------------------------------ | ------------------------------ | --------- |
+| 1    | Click "Edit Specs" on active product | Modal opens with existing data | [ ]       |
+| 2    | Verify all fields pre-filled         | Shows saved values             | [ ]       |
+| 3    | Modify a field (e.g., change carat)  | Input updates                  | [ ]       |
+| 4    | Save changes                         | Success message appears        | [ ]       |
+| 5    | Verify updated data                  | Product shows new values       | [ ]       |
+
+---
+
+## 2️⃣ CUSTOMER: VISUAL ENHANCEMENTS
+
+### Test 2.1: Diamond Type Tabs
+
+**URL:** `/builder?shop=your-store.myshopify.com` → Step 2 (Stones)
+
+| Step | Action                              | Expected Result                           | Pass/Fail |
+| ---- | ----------------------------------- | ----------------------------------------- | --------- |
+| 1    | Navigate to Stone Selector (Step 2) | See 3 tabs: Mined, Lab Grown, Fancy Color | [ ]       |
+| 2    | Check tab badges                    | Each shows count (e.g., "Mined (10)")     | [ ]       |
+| 3    | Verify "Mined" is default active    | Tab highlighted in burgundy #6D2932       | [ ]       |
+| 4    | Click "Lab Grown" tab               | Tab activates, stone list filters         | [ ]       |
+| 5    | Verify only lab grown stones show   | All visible stones have "Lab Grown" type  | [ ]       |
+| 6    | Click "Fancy Color" tab             | Tab activates, shows fancy color diamonds | [ ]       |
+| 7    | Click back to "Mined" tab           | Shows mined diamonds again                | [ ]       |
+
+### Test 2.2: Icon-Based Filters
+
+| Step | Action                | Expected Result                             | Pass/Fail |
+| ---- | --------------------- | ------------------------------------------- | --------- |
+| 1    | Check shape filters   | See 10 icon buttons (Round, Princess, etc.) | [ ]       |
+| 2    | Click a shape icon    | Icon highlights with border + background    | [ ]       |
+| 3    | Click multiple shapes | Multiple selections work (multi-select)     | [ ]       |
+| 4    | Verify stones filter  | Only selected shapes shown                  | [ ]       |
+| 5    | Unselect all shapes   | All stones shown again                      | [ ]       |
+
+### Test 2.3: Grid View
+
+| Step | Action                      | Expected Result                              | Pass/Fail |
+| ---- | --------------------------- | -------------------------------------------- | --------- |
+| 1    | Click Grid View toggle      | Stones display in grid cards                 | [ ]       |
+| 2    | Check grid columns          | Desktop: 3-4 cols, Mobile: 1-2 cols          | [ ]       |
+| 3    | Verify card info            | Image, shape, carat, 4Cs, price, certificate | [ ]       |
+| 4    | Check comparison checkbox   | Checkbox visible on each card                | [ ]       |
+| 5    | Click "View Details" button | Opens detail page (see Test 2.5)             | [ ]       |
+| 6    | Toggle back to List View    | Table view displays                          | [ ]       |
+
+### Test 2.4: Records Per Page
+
+| Step | Action                 | Expected Result                    | Pass/Fail |
+| ---- | ---------------------- | ---------------------------------- | --------- |
+| 1    | Check records selector | Dropdown shows 12, 20, 50, 100     | [ ]       |
+| 2    | Default is 20          | Shows 20 results per page          | [ ]       |
+| 3    | Change to 50           | Shows 50 results per page          | [ ]       |
+| 4    | Refresh page           | Preference persists (localStorage) | [ ]       |
+
+### Test 2.5: SKU Search
+
+| Step | Action                            | Expected Result                  | Pass/Fail |
+| ---- | --------------------------------- | -------------------------------- | --------- |
+| 1    | Type stock number in search field | Field accepts input              | [ ]       |
+| 2    | Type 2+ characters                | Auto-search triggers after 300ms | [ ]       |
+| 3    | Enter exact SKU and press Enter   | Shows matching stone(s)          | [ ]       |
+| 4    | Type non-existent SKU             | Shows "No results" message       | [ ]       |
+| 5    | Click clear button (X)            | Clears search, shows all stones  | [ ]       |
+
+---
+
+## 3️⃣ CUSTOMER: COMPARISON TOOL
+
+### Test 3.1: Diamond Comparison
+
+**URL:** `/builder?shop=your-store.myshopify.com` → Step 2 (Stones)
+
+| Step | Action                         | Expected Result                                    | Pass/Fail |
+| ---- | ------------------------------ | -------------------------------------------------- | --------- |
+| 1    | Check comparison checkboxes    | Visible on each stone (grid/table)                 | [ ]       |
+| 2    | Select 1 diamond checkbox      | Checkbox checked                                   | [ ]       |
+| 3    | Verify no compare button yet   | Button hidden (need 2+)                            | [ ]       |
+| 4    | Select 2nd diamond             | Floating "Compare Items (2)" button appears        | [ ]       |
+| 5    | Select 3rd and 4th diamonds    | Count updates to (3), then (4)                     | [ ]       |
+| 6    | Try selecting 5th diamond      | Disabled (max 4)                                   | [ ]       |
+| 7    | Click "Compare Items" button   | Modal opens with comparison table                  | [ ]       |
+| 8    | Check comparison table         | Side-by-side columns for all selected              | [ ]       |
+| 9    | Verify differences highlighted | Yellow background on differing specs               | [ ]       |
+| 10   | Check "Best Value" indicator   | Shows on lowest price/carat diamond                | [ ]       |
+| 11   | Click "Select This Diamond"    | Modal closes, diamond selected, proceeds to Step 3 | [ ]       |
+| 12   | Check localStorage persistence | Refresh page, selections still present             | [ ]       |
+
+---
+
+## 4️⃣ CUSTOMER: SAVE & SHARE
+
+### Test 4.1: Save Configuration
+
+**URL:** Complete full builder flow (Steps 1-4)
+
+| Step | Action                        | Expected Result                         | Pass/Fail |
+| ---- | ----------------------------- | --------------------------------------- | --------- |
+| 1    | Complete all 4 steps          | Reach Review step                       | [ ]       |
+| 2    | Look for "Save" button        | Visible on review page                  | [ ]       |
+| 3    | Click "Save" button           | Success modal appears                   | [ ]       |
+| 4    | Check shareable URL displayed | Format: `/builder/saved/XXXXXXXX`       | [ ]       |
+| 5    | Click "Copy to Clipboard"     | URL copied (test paste)                 | [ ]       |
+| 6    | Copy URL and open in new tab  | Configuration loads with all selections | [ ]       |
+| 7    | Verify prices recalculated    | Current prices shown (not old)          | [ ]       |
+
+### Test 4.2: Share Configuration
+
+| Step | Action                         | Expected Result                             | Pass/Fail |
+| ---- | ------------------------------ | ------------------------------------------- | --------- |
+| 1    | Click "Share" button on review | Share modal opens                           | [ ]       |
+| 2    | Check share options            | Email, Copy Link, Facebook, Twitter visible | [ ]       |
+| 3    | Test "Copy Link" button        | URL copied successfully                     | [ ]       |
+| 4    | Click Facebook button          | Opens Facebook Share Dialog                 | [ ]       |
+| 5    | Click Twitter button           | Opens Twitter compose window                | [ ]       |
+| 6    | Fill email share form          | Name, recipient email, message fields       | [ ]       |
+| 7    | Submit email share             | Success message appears                     | [ ]       |
+| 8    | Check recipient's inbox        | Email received with ring details            | [ ]       |
+
+**Email Validation:**
+
+- [ ] Email contains configuration image
+- [ ] Email contains price breakdown
+- [ ] Email contains shareable link
+- [ ] Email is mobile-friendly
+- [ ] Merchant logo/branding present
+
+---
+
+## 5️⃣ CUSTOMER: ENGAGEMENT FEATURES
+
+### Test 5.1: Drop A Hint
+
+| Step | Action                     | Expected Result                                   | Pass/Fail |
+| ---- | -------------------------- | ------------------------------------------------- | --------- |
+| 1    | Click "Drop A Hint" button | Inquiry modal opens                               | [ ]       |
+| 2    | Check form fields          | Recipient email, your name, special date, message | [ ]       |
+| 3    | Fill all fields            | Inputs accept data                                | [ ]       |
+| 4    | Submit form                | Success message appears                           | [ ]       |
+| 5    | Check recipient's email    | Hint email received                               | [ ]       |
+| 6    | Verify NO pricing in email | Only shows ring image and hint message            | [ ]       |
+
+### Test 5.2: Request More Info
+
+| Step | Action                           | Expected Result                          | Pass/Fail |
+| ---- | -------------------------------- | ---------------------------------------- | --------- |
+| 1    | Click "Request More Info" button | Inquiry modal opens                      | [ ]       |
+| 2    | Check form fields                | Name, email, phone, question             | [ ]       |
+| 3    | Fill and submit                  | Success message appears                  | [ ]       |
+| 4    | Check merchant's email           | Info request received                    | [ ]       |
+| 5    | Verify email contains            | Customer contact + configuration details | [ ]       |
+
+### Test 5.3: Email A Friend
+
+| Step | Action                         | Expected Result                                 | Pass/Fail |
+| ---- | ------------------------------ | ----------------------------------------------- | --------- |
+| 1    | Click "E-Mail A Friend" button | Inquiry modal opens                             | [ ]       |
+| 2    | Fill friend's email + message  | Form accepts input                              | [ ]       |
+| 3    | Submit                         | Success message appears                         | [ ]       |
+| 4    | Check friend's email           | Email received with full ring details + pricing | [ ]       |
+
+### Test 5.4: Schedule Viewing
+
+| Step | Action                          | Expected Result                         | Pass/Fail |
+| ---- | ------------------------------- | --------------------------------------- | --------- |
+| 1    | Click "Schedule Viewing" button | Inquiry modal opens                     | [ ]       |
+| 2    | Fill form                       | Name, email, phone, date, time, message | [ ]       |
+| 3    | Select future date/time         | Date picker works                       | [ ]       |
+| 4    | Submit                          | Success message appears                 | [ ]       |
+| 5    | Check merchant's email          | Viewing request received                | [ ]       |
+| 6    | Verify iCal attachment          | .ics file attached to email             | [ ]       |
+| 7    | Open iCal file                  | Calendar event with details             | [ ]       |
+
+### Test 5.5: Inquiry Dashboard (Admin)
+
+**URL:** `/app/builder/inquiries`
+
+| Step | Action                     | Expected Result                        | Pass/Fail |
+| ---- | -------------------------- | -------------------------------------- | --------- |
+| 1    | Navigate to inquiries page | List of all inquiries                  | [ ]       |
+| 2    | Check inquiry cards        | Type icon, customer info, ring details | [ ]       |
+| 3    | Filter by type             | Dropdown filters correctly             | [ ]       |
+| 4    | Filter by status           | New/Contacted/Closed filters work      | [ ]       |
+| 5    | Click "Mark as Contacted"  | Status updates                         | [ ]       |
+| 6    | Click "Reply to Customer"  | Opens email client                     | [ ]       |
+
+---
+
+## 6️⃣ CUSTOMER: DETAIL PAGES
+
+### Test 6.1: Setting Detail Page
+
+**URL:** `/builder/setting/:id?shop=your-store.myshopify.com`
+
+| Step | Action                          | Expected Result                             | Pass/Fail |
+| ---- | ------------------------------- | ------------------------------------------- | --------- |
+| 1    | Navigate to setting detail page | Page loads with full details                | [ ]       |
+| 2    | Check main image                | Large image displays                        | [ ]       |
+| 3    | Check thumbnail strip           | 4-6 thumbnails visible (if multiple images) | [ ]       |
+| 4    | Click thumbnail                 | Main image changes                          | [ ]       |
+| 5    | Check metal selector            | 7 metal options displayed                   | [ ]       |
+| 6    | Click different metal           | Price updates dynamically                   | [ ]       |
+| 7    | Check specifications panel      | All specs displayed                         | [ ]       |
+| 8    | Check compatible shapes         | Badge list shows all shapes                 | [ ]       |
+| 9    | Click "Add Your Diamond"        | Navigates to builder with setting selected  | [ ]       |
+| 10   | Click breadcrumb "Back"         | Returns to builder                          | [ ]       |
+
+**SEO Validation:**
+
+- [ ] View page source → Check `<meta property="og:title">` exists
+- [ ] View page source → Check `<meta property="og:image">` exists
+- [ ] Share on Facebook → Preview shows correct image/title
+- [ ] Share on Twitter → Preview shows correct card
+
+### Test 6.2: Diamond Detail Page
+
+**URL:** `/builder/diamond/:id?shop=your-store.myshopify.com`
+
+| Step | Action                           | Expected Result                                      | Pass/Fail |
+| ---- | -------------------------------- | ---------------------------------------------------- | --------- |
+| 1    | Navigate to diamond detail page  | Page loads with full details                         | [ ]       |
+| 2    | Check main image                 | Large diamond image displays                         | [ ]       |
+| 3    | Check availability badge         | Shows "Available" or "Not Available"                 | [ ]       |
+| 4    | Check diamond type badge         | Shows "Natural Mined", "Lab Grown", or "Fancy Color" | [ ]       |
+| 5    | Check The 4Cs section            | Carat, Cut, Color, Clarity displayed                 | [ ]       |
+| 6    | Check Additional Details         | Measurements, table %, depth %, etc.                 | [ ]       |
+| 7    | Check price per carat            | Calculated correctly                                 | [ ]       |
+| 8    | If has certificate, check button | "View Certificate" button visible                    | [ ]       |
+| 9    | Click "View Certificate"         | Modal opens with PDF iframe                          | [ ]       |
+| 10   | Close certificate modal          | Modal closes                                         | [ ]       |
+| 11   | Click "Complete Your Ring"       | Navigates to builder with diamond selected           | [ ]       |
+
+**SEO Validation:**
+
+- [ ] View page source → Check all OG tags
+- [ ] Share on social media → Preview correct
+
+---
+
+## 7️⃣ METAFIELDS INTEGRATION
+
+### Test 7.1: Metafield Setup
+
+**URL:** `/app/builder/products` (or trigger manually)
+
+| Step | Action                                      | Expected Result                                       | Pass/Fail |
+| ---- | ------------------------------------------- | ----------------------------------------------------- | --------- |
+| 1    | Open Shopify Admin → Settings → Custom Data | Metafields section loads                              | [ ]       |
+| 2    | Navigate to Products                        | See "ringbuilder" namespace                           | [ ]       |
+| 3    | Check metafield definitions                 | 21 definitions created                                | [ ]       |
+| 4    | Verify diamond metafields                   | shape, carat, cut, color, clarity, diamond_type, etc. | [ ]       |
+| 5    | Verify setting metafields                   | style, compatible_shapes, metal_prices, etc.          | [ ]       |
+
+### Test 7.2: Metafield Sync (Write)
+
+| Step | Action                         | Expected Result                      | Pass/Fail |
+| ---- | ------------------------------ | ------------------------------------ | --------- |
+| 1    | Add diamond specs via admin UI | Form saves successfully              | [ ]       |
+| 2    | Open Shopify Admin → Products  | Navigate to that product             | [ ]       |
+| 3    | Scroll to Metafields section   | See "ringbuilder" metafields         | [ ]       |
+| 4    | Verify all specs written       | shape, carat, cut, color, etc. match | [ ]       |
+| 5    | Edit specs in admin UI         | Update carat weight                  | [ ]       |
+| 6    | Check Shopify metafields again | Updated value reflected              | [ ]       |
+
+### Test 7.3: Metafield Sync (Read via Webhook)
+
+| Step | Action                             | Expected Result            | Pass/Fail |
+| ---- | ---------------------------------- | -------------------------- | --------- |
+| 1    | Open Shopify Admin → Products      | Find a builder product     | [ ]       |
+| 2    | Edit product price                 | Change first variant price | [ ]       |
+| 3    | Save product                       | Webhook triggers           | [ ]       |
+| 4    | Check app database (Prisma Studio) | Stone price updated        | [ ]       |
+| 5    | Check app builder                  | New price visible          | [ ]       |
+
+**Manual Webhook Test:**
 
 ```bash
-# Check database
-sqlite3 prisma/dev.sqlite "SELECT * FROM SettingMetadata LIMIT 5;"
+npm run dev
+# In another terminal:
+shopify webhook trigger --topic products/update
 ```
 
-**Expected Output:**
+- [ ] Webhook received (check console logs)
+- [ ] Database updated (if builder product)
+- [ ] Returns 200 OK
 
-```
-✓ Record created in SettingMetadata table
-✓ shop field matches your store
-✓ productId is Shopify GID
-✓ Default values set (style=solitaire, basePrices={})
-```
+---
 
-### 3.2 Mark Product as Stone
+## 8️⃣ PERFORMANCE TESTING
 
-**Steps:**
-
-1. Find another unmarked product
-2. Click "Mark as Stone" button
-
-**Expected Results:**
-
-- ✅ Product shows "💎 Stone" badge
-- ✅ Edit link appears
-- ✅ Database has StoneMetadata record
-
-**Validation:**
+### Test 8.1: Build Performance
 
 ```bash
-sqlite3 prisma/dev.sqlite "SELECT * FROM StoneMetadata LIMIT 5;"
+npm run build
 ```
+
+| Metric               | Target   | Actual   | Pass/Fail |
+| -------------------- | -------- | -------- | --------- |
+| Build time           | < 3s     | 1.67s    | [ ] ✅    |
+| Client bundle (gzip) | < 200 KB | 46.67 KB | [ ] ✅    |
+| TypeScript errors    | 0        | 0        | [ ] ✅    |
+
+### Test 8.2: Runtime Performance
+
+| Test             | Action           | Target  | Pass/Fail |
+| ---------------- | ---------------- | ------- | --------- |
+| Page load time   | Open `/builder`  | < 3s    | [ ]       |
+| API response     | Fetch stones     | < 500ms | [ ]       |
+| Grid view render | Switch to grid   | < 1s    | [ ]       |
+| Comparison modal | Open comparison  | < 500ms | [ ]       |
+| Detail page load | Open detail page | < 2s    | [ ]       |
+
+### Test 8.3: Large Catalog Performance
+
+**Setup:** Add 100+ stones via CSV import
+
+| Test                       | Expected Result           | Pass/Fail |
+| -------------------------- | ------------------------- | --------- |
+| Stone selector loads       | No lag or freezing        | [ ]       |
+| Filtering works smoothly   | Results update < 1s       | [ ]       |
+| Grid view scrolls smoothly | No jank                   | [ ]       |
+| Comparison works           | Handles 4 diamonds easily | [ ]       |
 
 ---
 
-## Test Suite 4: Edit Setting Metadata
+## 9️⃣ MOBILE TESTING
 
-### 4.1 Access Setting Edit Page
+### Test 9.1: Mobile Responsive Design
 
-**Steps:**
+**Devices to Test:**
 
-1. Click "Edit Metadata" on a setting product
-2. Or navigate to: `/app/builder/products/gid%3A%2F%2Fshopify%2FProduct%2F123`
+- iPhone (Safari)
+- Android (Chrome)
+- Tablet (iPad)
 
-**Expected Results:**
+| Feature          | Test                         | Pass/Fail |
+| ---------------- | ---------------------------- | --------- |
+| Diamond tabs     | Tabs fit on screen, tappable | [ ]       |
+| Icon filters     | 2-3 columns on mobile        | [ ]       |
+| Grid view        | 1-2 columns on mobile        | [ ]       |
+| Detail pages     | Single column layout         | [ ]       |
+| Metal selector   | Full-width buttons           | [ ]       |
+| Comparison modal | Horizontal scroll works      | [ ]       |
+| Modals (all)     | Fit on screen, closeable     | [ ]       |
+| Touch targets    | Min 44x44px                  | [ ]       |
 
-- ✅ Product preview shows at top
-- ✅ Form displays with Setting fields
-- ✅ Style dropdown populated
-- ✅ Setting height dropdown
-- ✅ Compatible shapes checkboxes (all 10 shapes)
-- ✅ Base prices inputs (4 metal types)
+### Test 9.2: Mobile Gestures
 
-### 4.2 Fill Setting Form
+| Gesture | Feature          | Expected Result             | Pass/Fail |
+| ------- | ---------------- | --------------------------- | --------- |
+| Swipe   | Image gallery    | Swipe between images        | [ ]       |
+| Pinch   | Product image    | Zoom works (if implemented) | [ ]       |
+| Tap     | Buttons/links    | All tappable                | [ ]       |
+| Scroll  | Comparison table | Horizontal scroll smooth    | [ ]       |
 
-**Steps:**
+---
 
-1. Select Style: "Halo"
-2. Select Height: "Medium"
-3. Check shapes: Round, Princess, Cushion
-4. Enter prices:
-   - 14K White Gold: $500
-   - 14K Yellow Gold: $550
-   - 18K Rose Gold: $600
-   - Platinum: $800
-5. Toggle "Featured" on
-6. Click "Save Setting"
+## 🔟 ACCESSIBILITY TESTING
 
-**Expected Results:**
+### Test 10.1: Keyboard Navigation
 
-- ✅ Form submits with loading state
-- ✅ Redirects to products page
-- ✅ Data saved to database
+| Test            | Action                           | Expected Result       | Pass/Fail |
+| --------------- | -------------------------------- | --------------------- | --------- |
+| Tab navigation  | Press Tab key                    | Focus moves logically | [ ]       |
+| Icon selection  | Tab to icon, press Space/Enter   | Selects icon          | [ ]       |
+| Modal close     | Tab to close button, press Enter | Closes modal          | [ ]       |
+| Form fields     | Tab through all inputs           | All focusable         | [ ]       |
+| Skip to content | Tab from start                   | Can bypass navigation | [ ]       |
 
-**Validation:**
+### Test 10.2: Screen Reader
+
+**Tool:** VoiceOver (Mac) or NVDA (Windows)
+
+| Test           | Expected Result             | Pass/Fail |
+| -------------- | --------------------------- | --------- |
+| Product images | Alt text announced          | [ ]       |
+| Icon filters   | aria-label announced        | [ ]       |
+| Buttons        | Button labels clear         | [ ]       |
+| Form fields    | Labels associated correctly | [ ]       |
+| Error messages | Errors announced            | [ ]       |
+
+### Test 10.3: Color Contrast
+
+**Tool:** Browser DevTools → Accessibility Panel
+
+| Element           | Ratio  | Target  | Pass/Fail |
+| ----------------- | ------ | ------- | --------- |
+| Body text         | 4.5:1+ | WCAG AA | [ ]       |
+| Button text       | 4.5:1+ | WCAG AA | [ ]       |
+| Links             | 4.5:1+ | WCAG AA | [ ]       |
+| Icons with labels | 3:1+   | WCAG AA | [ ]       |
+
+---
+
+## 1️⃣1️⃣ END-TO-END TESTING
+
+### E2E Test 1: Complete Builder Flow (Happy Path)
+
+| Step | Action                             | Expected Result                   | Pass/Fail |
+| ---- | ---------------------------------- | --------------------------------- | --------- |
+| 1    | Open `/builder?shop=...`           | Step 1 loads (Select Setting)     | [ ]       |
+| 2    | Filter by style (Solitaire)        | Settings filter                   | [ ]       |
+| 3    | Select a setting                   | Step 2 loads (Select Diamond)     | [ ]       |
+| 4    | Click "Mined" tab                  | Mined diamonds shown              | [ ]       |
+| 5    | Filter by shape (Round)            | Filters apply                     | [ ]       |
+| 6    | Toggle to Grid View                | Grid displays                     | [ ]       |
+| 7    | Click 2 comparison checkboxes      | Compare button appears            | [ ]       |
+| 8    | Open comparison modal              | Modal shows diamonds              | [ ]       |
+| 9    | Select a diamond                   | Modal closes, diamond selected    | [ ]       |
+| 10   | Proceed to Step 3                  | Customization page loads          | [ ]       |
+| 11   | Select ring size                   | Size selected                     | [ ]       |
+| 12   | Configure side stones (if enabled) | Options set                       | [ ]       |
+| 13   | Proceed to Step 4                  | Review page loads                 | [ ]       |
+| 14   | Verify all selections shown        | Setting, stone, metal, size, etc. | [ ]       |
+| 15   | Check price breakdown              | All itemized correctly            | [ ]       |
+| 16   | Click "Save" button                | Shareable URL generated           | [ ]       |
+| 17   | Click "Share" button               | Share modal opens                 | [ ]       |
+| 18   | Click "Drop A Hint"                | Hint modal opens                  | [ ]       |
+| 19   | Click "Add to Cart"                | Success, redirects to cart        | [ ]       |
+| 20   | Check Shopify cart                 | Line item with all properties     | [ ]       |
+
+### E2E Test 2: Admin Product Setup Flow
+
+| Step | Action                    | Expected Result                      | Pass/Fail |
+| ---- | ------------------------- | ------------------------------------ | --------- |
+| 1    | Login to admin            | `/app` loads                         | [ ]       |
+| 2    | Navigate to Products      | Product dashboard loads              | [ ]       |
+| 3    | Click "Sync from Shopify" | Products refresh                     | [ ]       |
+| 4    | Find unmarked product     | Shows ○ Regular Product              | [ ]       |
+| 5    | Click "Add as Diamond"    | Modal opens                          | [ ]       |
+| 6    | Fill all required fields  | Form accepts data                    | [ ]       |
+| 7    | Save                      | Success message, status changes to ✓ | [ ]       |
+| 8    | Verify in Shopify Admin   | Metafields written                   | [ ]       |
+| 9    | Edit specs in app admin   | Modal pre-filled                     | [ ]       |
+| 10   | Update a field            | Save successful                      | [ ]       |
+| 11   | Verify update in Shopify  | Metafield updated                    | [ ]       |
+
+### E2E Test 3: Saved Configuration Loading
+
+| Step | Action                           | Expected Result             | Pass/Fail |
+| ---- | -------------------------------- | --------------------------- | --------- |
+| 1    | Complete builder, save config    | Get shareable URL           | [ ]       |
+| 2    | Copy URL                         | URL copied                  | [ ]       |
+| 3    | Open in incognito/private window | Loads without login         | [ ]       |
+| 4    | Verify all selections pre-filled | Setting, stone, metal, size | [ ]       |
+| 5    | Verify prices current            | Not old cached prices       | [ ]       |
+| 6    | Can modify and checkout          | Full builder functionality  | [ ]       |
+
+---
+
+## 1️⃣2️⃣ BROWSER COMPATIBILITY
+
+### Desktop Browsers
+
+| Browser | Version | Load | Features | Styling | Pass/Fail |
+| ------- | ------- | ---- | -------- | ------- | --------- |
+| Chrome  | Latest  | [ ]  | [ ]      | [ ]     | [ ]       |
+| Firefox | Latest  | [ ]  | [ ]      | [ ]     | [ ]       |
+| Safari  | Latest  | [ ]  | [ ]      | [ ]     | [ ]       |
+| Edge    | Latest  | [ ]  | [ ]      | [ ]     | [ ]       |
+
+### Mobile Browsers
+
+| Platform | Browser | Version | Pass/Fail |
+| -------- | ------- | ------- | --------- |
+| iOS      | Safari  | Latest  | [ ]       |
+| iOS      | Chrome  | Latest  | [ ]       |
+| Android  | Chrome  | Latest  | [ ]       |
+| Android  | Firefox | Latest  | [ ]       |
+
+---
+
+## 1️⃣3️⃣ SECURITY TESTING
+
+### Test 13.1: Authentication
+
+| Test                      | Expected Result       | Pass/Fail |
+| ------------------------- | --------------------- | --------- |
+| Admin routes without auth | Redirect to login     | [ ]       |
+| Public routes (builder)   | Load without auth     | [ ]       |
+| API routes (admin)        | Require valid session | [ ]       |
+| API routes (builder)      | No auth required      | [ ]       |
+
+### Test 13.2: Input Validation
+
+| Input           | Test                  | Expected Result        | Pass/Fail |
+| --------------- | --------------------- | ---------------------- | --------- |
+| Email fields    | Enter invalid email   | Shows validation error | [ ]       |
+| Carat weight    | Enter negative number | Prevents input         | [ ]       |
+| Carat weight    | Enter "abc"           | Shows error            | [ ]       |
+| Phone number    | Enter letters         | Validation error       | [ ]       |
+| Required fields | Submit empty form     | Shows all errors       | [ ]       |
+
+### Test 13.3: SQL Injection Prevention
+
+| Test        | Input                 | Expected Result                | Pass/Fail |
+| ----------- | --------------------- | ------------------------------ | --------- |
+| SKU search  | `' OR '1'='1`         | No SQL error, treats as string | [ ]       |
+| Share token | `../../../etc/passwd` | 404, no path traversal         | [ ]       |
+
+### Test 13.4: Rate Limiting
+
+| Test               | Action                  | Expected Result      | Pass/Fail |
+| ------------------ | ----------------------- | -------------------- | --------- |
+| Inquiry submission | Submit 10 times quickly | Rate limit after 5?  | [ ]       |
+| Email sending      | Send 20 emails          | Rate limit triggers? | [ ]       |
+
+---
+
+## 1️⃣4️⃣ ERROR HANDLING
+
+### Test 14.1: Network Errors
+
+| Scenario    | Action                           | Expected Result                           | Pass/Fail |
+| ----------- | -------------------------------- | ----------------------------------------- | --------- |
+| Offline     | Disconnect internet, submit form | Shows "Network error" message             | [ ]       |
+| API timeout | Slow connection                  | Shows loading state, then timeout message | [ ]       |
+| 500 error   | Trigger server error             | Shows user-friendly error                 | [ ]       |
+
+### Test 14.2: Missing Data
+
+| Scenario                | Expected Result            | Pass/Fail |
+| ----------------------- | -------------------------- | --------- |
+| Product not found (404) | Shows "Not found" message  | [ ]       |
+| Invalid share token     | 404 page or redirect       | [ ]       |
+| Missing image           | Shows placeholder          | [ ]       |
+| Missing certificate     | Certificate section hidden | [ ]       |
+
+---
+
+## 1️⃣5️⃣ BACKWARD COMPATIBILITY
+
+### Test 15.1: Phase 1.0 Features Still Work
+
+| Feature                 | Test                          | Expected Result               | Pass/Fail |
+| ----------------------- | ----------------------------- | ----------------------------- | --------- |
+| CSV Import              | Upload CSV                    | Still works in Advanced Tools | [ ]       |
+| Existing configurations | Load old config               | Displays correctly            | [ ]       |
+| Cart functionality      | Add to cart (Phase 1 product) | Works normally                | [ ]       |
+| Settings management     | Admin settings page           | No regression                 | [ ]       |
+
+---
+
+## 1️⃣6️⃣ MIGRATION TESTING
+
+### Test 16.1: Validation Script
 
 ```bash
-sqlite3 prisma/dev.sqlite "SELECT style, basePrices, compatibleShapes, featured FROM SettingMetadata WHERE shop LIKE '%builder-store%';"
+npx ts-node prisma/scripts/migrate-to-phase-2.ts
 ```
 
-**Expected Output:**
+| Step                       | Expected Result                 | Pass/Fail |
+| -------------------------- | ------------------------------- | --------- |
+| Script runs without errors | Exits with code 0               | [ ]       |
+| Shows database stats       | Total stones, settings, configs | [ ]       |
+| Validates diamondType      | All stones have default value   | [ ]       |
+| Shows Phase 2 features     | Saved configs, inquiries counts | [ ]       |
+| Prints summary             | No errors reported              | [ ]       |
 
-```
-style = "halo"
-basePrices = {"14k_white_gold":500,"14k_yellow_gold":550,...}
-compatibleShapes = ["round","princess","cushion"]
-featured = 1
-```
-
----
-
-## Test Suite 5: Edit Stone Metadata
-
-### 5.1 Access Stone Edit Page
-
-**Steps:**
-
-1. Click "Edit Metadata" on a stone product
-
-**Expected Results:**
-
-- ✅ Stone form displays
-- ✅ All fields present:
-  - Stone Type dropdown
-  - Shape dropdown
-  - Carat input
-  - Price input
-  - Cut/Color/Clarity dropdowns
-  - Certificate fields
-  - Measurements input
-  - Optional fields (table%, depth%, polish, symmetry, fluorescence)
-
-### 5.2 Fill Stone Form
-
-**Steps:**
-
-1. Stone Type: Diamond
-2. Shape: Round
-3. Carat: 1.50
-4. Price: 5000
-5. Cut: Excellent
-6. Color: G
-7. Clarity: VS1
-8. Certificate Type: GIA
-9. Certificate Number: 2141234567
-10. Measurements: 7.35 x 7.40 x 4.50
-11. Table %: 58.5
-12. Depth %: 61.2
-13. Polish: Excellent
-14. Symmetry: Excellent
-15. Fluorescence: None
-16. Click "Save Stone"
-
-**Expected Results:**
-
-- ✅ Form validates all required fields
-- ✅ Prevents submission if carat or price missing
-- ✅ Submits successfully
-- ✅ Redirects to products page
-
-**Validation:**
+### Test 16.2: Shop-Specific Validation
 
 ```bash
-sqlite3 prisma/dev.sqlite "SELECT carat, shape, cut, color, clarity, price, certificate FROM StoneMetadata WHERE shop LIKE '%builder-store%';"
+npx ts-node prisma/scripts/migrate-to-phase-2.ts --shop=store.myshopify.com
 ```
 
-**Expected Output:**
-
-```
-carat = 1.5
-shape = "round"
-cut = "excellent"
-color = "g"
-clarity = "vs1"
-price = 5000.0
-certificate = "gia"
-```
+| Step                   | Expected Result              | Pass/Fail |
+| ---------------------- | ---------------------------- | --------- |
+| Script filters by shop | Only shows that shop's data  | [ ]       |
+| Statistics accurate    | Matches Prisma Studio counts | [ ]       |
 
 ---
 
-## Test Suite 6: CSV Import
+## ✅ TESTING SIGN-OFF
 
-### 6.1 Import Sample CSV
+### Critical Tests (Must Pass)
 
-**Steps:**
+- [ ] All admin forms save correctly
+- [ ] All customer features functional
+- [ ] Detail pages load and are shareable
+- [ ] Performance meets targets (< 3s page load, < 500ms API)
+- [ ] Mobile responsive on all features
+- [ ] TypeScript: 0 errors
+- [ ] Build: Success
+- [ ] No console errors
 
-1. On products page, click "📤 Import CSV"
-2. Modal should open
-3. Click "Choose File"
-4. Select: `docs/SAMPLE_STONE_IMPORT.csv`
-5. Click "Import"
+### Quality Tests (Should Pass)
 
-**Expected Results:**
+- [ ] SEO meta tags complete
+- [ ] Accessibility (keyboard nav, screen reader)
+- [ ] Browser compatibility (Chrome, Firefox, Safari)
+- [ ] Error handling comprehensive
+- [ ] Security validation (auth, input sanitization)
 
-- ✅ Modal shows during import
-- ✅ Results display: "✅ Imported: 5, ❌ Failed: 0"
-- ✅ 5 stone records created in database
+### Optional Tests (Nice to Have)
 
-**Validation:**
-
-```bash
-sqlite3 prisma/dev.sqlite "SELECT COUNT(*) FROM StoneMetadata;"
-```
-
-**Expected Output:**
-
-```
-5 (or more if you already had stones)
-```
-
-**Detailed Check:**
-
-```bash
-sqlite3 prisma/dev.sqlite "SELECT carat, shape, color, clarity, certificate FROM StoneMetadata ORDER BY carat;"
-```
-
-**Expected Output:**
-
-```
-1.0|emerald|h|si1|gia
-1.25|princess|f|vvs2|gia
-1.5|round|g|vs1|gia
-1.75|oval|||igi
-2.0|cushion|e|vs2|ags
-```
-
-### 6.2 Test Invalid CSV
-
-**Steps:**
-
-1. Create a CSV with invalid data:
-
-```csv
-productId,stoneType,shape,carat,price
-invalid-id,diamond,round,abc,5000
-```
-
-2. Import this CSV
-
-**Expected Results:**
-
-- ✅ Shows error: "Failed: 1"
-- ✅ Error details explain validation failure
-- ✅ No invalid records in database
+- [ ] Lighthouse audit (90+ score)
+- [ ] Performance with 1000+ products
+- [ ] Load testing (concurrent users)
 
 ---
 
-## Test Suite 7: CSV Export
+## 📊 TEST RESULTS SUMMARY
 
-### 7.1 Export Stones
+**Date Tested:** **\*\***\_\_\_\_**\*\***  
+**Tested By:** **\*\***\_\_\_\_**\*\***  
+**Environment:** **\*\***\_\_\_\_**\*\***
 
-**Steps:**
+**Results:**
 
-1. Click "📥 Export Stones" button
-2. File should download
+- Total Tests: **\_** / **\_**
+- Passed: **\_**
+- Failed: **\_**
+- Skipped: **\_**
 
-**Expected Results:**
+**Critical Issues Found:**
 
-- ✅ File downloads: `stones-export-[timestamp].csv`
-- ✅ Opens in Excel/Numbers correctly
-- ✅ Contains all stone records
-- ✅ Headers match import template
+1. ***
+2. ***
 
-**Validation:**
+**Minor Issues:**
 
-```bash
-# Check exported file
-cat ~/Downloads/stones-export-*.csv | head -3
-```
+1. ***
+2. ***
 
-**Expected Output:**
-
-```csv
-productId,stoneType,shape,carat,cut,color,clarity,price,...
-gid://shopify/Product/1001,diamond,round,1.5,excellent,g,vs1,5000,...
-gid://shopify/Product/1002,diamond,princess,1.25,very_good,f,vvs2,7500,...
-```
-
-### 7.2 Export Settings
-
-**Steps:**
-
-1. Navigate to: http://localhost:62354/api/admin/export?type=settings
-2. Or click export button if added
-
-**Expected Results:**
-
-- ✅ Settings CSV downloads
-- ✅ Contains productId, style, basePrices, etc.
+**Overall Status:** [ ] PASS [ ] FAIL [ ] NEEDS WORK
 
 ---
 
-## Test Suite 8: Database Integrity
+## 🚀 PRODUCTION GO/NO-GO
 
-### 8.1 Verify Multi-Tenant Isolation
+### Criteria for Production Deployment
 
-**Steps:**
+- [ ] All critical tests passed
+- [ ] No blocker issues found
+- [ ] Performance targets met
+- [ ] Security audit completed
+- [ ] Documentation complete
+- [ ] Migration script tested
+- [ ] Backward compatibility verified
 
-1. Check all records have shop field populated
+**Decision:** [ ] ✅ GO [ ] ❌ NO-GO [ ] ⏳ NEEDS MORE WORK
 
-**Validation:**
-
-```bash
-# Check SettingMetadata
-sqlite3 prisma/dev.sqlite "SELECT shop, COUNT(*) FROM SettingMetadata GROUP BY shop;"
-
-# Check StoneMetadata
-sqlite3 prisma/dev.sqlite "SELECT shop, COUNT(*) FROM StoneMetadata GROUP BY shop;"
-```
-
-**Expected Output:**
-
-```
-builder-store-103.myshopify.com|<count>
-```
-
-### 8.2 Verify Indexes
-
-**Validation:**
-
-```bash
-sqlite3 prisma/dev.sqlite ".indexes SettingMetadata"
-sqlite3 prisma/dev.sqlite ".indexes StoneMetadata"
-```
-
-**Expected Output:**
-
-```
-SettingMetadata_shop_style_idx
-SettingMetadata_shop_featured_idx
-SettingMetadata_productId_idx
-
-StoneMetadata_shop_shape_carat_idx
-StoneMetadata_shop_available_idx
-StoneMetadata_shop_price_idx
-StoneMetadata_shop_stoneType_idx
-StoneMetadata_productId_idx
-```
+**Sign-off:** **\*\***\_\_\_\_**\*\*** Date: **\*\***\_\_\_\_**\*\***
 
 ---
 
-## Test Suite 9: Error Handling
+**End of Manual Testing Guide**
 
-### 9.1 Test Invalid Product ID
-
-**Expected:** Should reject with error message
-
-### 9.2 Test Missing Required Fields
-
-**Steps:**
-
-1. Try to save stone without carat
-2. Try to save stone without price
-
-**Expected Results:**
-
-- ✅ Form validation prevents submission
-- ✅ Error message displays
-- ✅ No invalid data saved
-
-### 9.3 Test Duplicate Marking
-
-**Steps:**
-
-1. Mark product as Setting
-2. Mark same product as Stone
-
-**Expected Results:**
-
-- ✅ Old setting metadata removed
-- ✅ New stone metadata created
-- ✅ Only one type per product
-
----
-
-## ✅ Complete Admin Workflow Test
-
-### End-to-End Test
-
-**Steps:**
-
-1. Start at dashboard → see counts
-2. Navigate to products → see grid
-3. Mark product as setting → verify badge appears
-4. Click "Edit Metadata" → edit form loads
-5. Fill setting form → save successfully
-6. Navigate back → changes persisted
-7. Mark another product as stone
-8. Edit stone metadata → fill all fields
-9. Save → redirects successfully
-10. Import CSV → 5 stones imported
-11. Export CSV → file downloads
-12. Search for product → filter works
-13. Filter by type → correct products shown
-
-**Expected Result:**
-✅ Complete workflow succeeds with no errors
-
----
-
-## 📊 Validation Checklist
-
-### Build & Compilation
-
-- ✅ TypeScript compilation: 0 errors
-- ✅ Production build: Success
-- ✅ Build time: <2 seconds
-- ✅ No build warnings
-
-### Routes Created
-
-- ✅ 9 routes total
-- ✅ 4 admin pages
-- ✅ 5 API endpoints
-- ✅ All routes accessible
-
-### Database
-
-- ✅ All tables exist
-- ✅ All indexes created
-- ✅ Multi-tenant isolation working
-- ✅ CRUD operations functional
-
-### Functionality
-
-- ✅ Dashboard loads
-- ✅ Products list loads
-- ✅ Mark as setting/stone works
-- ✅ Edit forms render
-- ✅ Setting form saves
-- ✅ Stone form saves
-- ✅ CSV import works
-- ✅ CSV export works
-- ✅ Search filters products
-- ✅ Type filter works
-
-### Code Quality
-
-- ✅ No TypeScript errors
-- ✅ Consistent styling
-- ✅ Error handling present
-- ✅ Loading states implemented
-- ✅ Validation on all inputs
-
----
-
-## 🐛 Known Issues
-
-### None Found
-
-All tests pass successfully. No critical or high-priority bugs identified.
-
----
-
-## 📝 Testing Notes
-
-1. **Authentication Required:** All admin routes require Shopify session
-2. **Manual Testing:** Best done through browser (embedded app)
-3. **CSV Template:** Use `docs/SAMPLE_STONE_IMPORT.csv` for testing
-4. **Database:** Check with `npx prisma studio` or sqlite3 commands
-
----
-
-## ✅ Task 2.0 Acceptance Criteria
-
-All criteria from task list met:
-
-- ✅ Merchant can view all Shopify products in admin
-- ✅ Merchant can mark product as Setting or Stone
-- ✅ Merchant can fill and save setting metadata
-- ✅ Merchant can fill and save stone metadata
-- ✅ Merchant can bulk import stones via CSV
-- ✅ Merchant can export settings/stones to CSV
-- ✅ All forms have validation and error handling
-- ✅ All API endpoints return proper error messages
-
----
-
-## 🚀 Ready for Phase 3.0
-
-All Phase 2 functionality is complete and validated.
-
-**Next:** Admin Settings & Configuration
+For automated testing setup, see: `docs/API_TESTING.md`  
+For quick testing checklist, see: `docs/QUICK_TEST_GUIDE.md`

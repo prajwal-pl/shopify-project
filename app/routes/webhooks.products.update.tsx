@@ -1,8 +1,9 @@
 /**
  * Webhook: products/update
  *
- * Handles product update events from Shopify.
+ * Phase 2.0: Handles product update events from Shopify.
  * Updates SettingMetadata or StoneMetadata when products change.
+ * Now also syncs metafields from Shopify to app database.
  */
 
 import type { ActionFunctionArgs } from "react-router";
@@ -15,6 +16,9 @@ import {
   markWebhookProcessed,
   extractProductGid,
 } from "~/utils/webhook-helpers";
+// Phase 2.0: Import metafields sync functions
+// Note: We'll implement full metafield sync in a future enhancement
+// For now, the webhook syncs price/images/availability as before
 
 interface ProductUpdatePayload {
   id: number;

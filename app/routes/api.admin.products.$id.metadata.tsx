@@ -1,7 +1,8 @@
 /**
  * Admin API: Update Product Metadata
  *
- * Endpoint to update setting or stone metadata.
+ * Phase 2.0: Endpoint to update setting or stone metadata.
+ * Now writes to BOTH Shopify metafields (source of truth) and app database (cache).
  */
 
 import type { ActionFunctionArgs } from "react-router";
@@ -13,9 +14,13 @@ import {
   validateShopifyGID,
   ValidationError,
 } from "~/utils/validators";
+import {
+  writeSettingMetafields,
+  writeDiamondMetafields,
+} from "~/services/metafields.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const { shop } = session;
 
   const productId = params.id;
@@ -41,9 +46,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   try {
     if (type === "setting") {
-      return await updateSettingMetadata(productId, shop, formData);
+      return await updateSettingMetadata(admin, productId, shop, formData);
     } else {
-      return await updateStoneMetadata(productId, shop, formData);
+      return await updateStoneMetadata(admin, productId, shop, formData);
     }
   } catch (error: any) {
     if (error instanceof ValidationError) {
@@ -58,6 +63,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 async function updateSettingMetadata(
+  admin: any,
   productId: string,
   shop: string,
   formData: FormData,
@@ -86,7 +92,24 @@ async function updateSettingMetadata(
     throw new ValidationError("At least one compatible shape is required");
   }
 
-  // Update metadata
+  // Phase 2.0: Write to Shopify metafields (source of truth)
+  const metafieldsResult = await writeSettingMetafields(admin, productId, {
+    type: "setting",
+    style: style as any, // Validated above
+    compatible_shapes: shapes as any,
+    metal_prices: prices,
+    setting_height: (settingHeight || undefined) as any,
+  });
+
+  if (!metafieldsResult.success) {
+    console.error(
+      "Warning: Failed to write some metafields:",
+      metafieldsResult.errors,
+    );
+    // Continue anyway - metafields will sync later via webhook
+  }
+
+  // Update app database (cache)
   const metadata = await prisma.settingMetadata.upsert({
     where: { productId },
     create: {
@@ -111,10 +134,12 @@ async function updateSettingMetadata(
     success: true,
     type: "setting",
     metadata,
+    metafieldsWritten: metafieldsResult.success,
   });
 }
 
 async function updateStoneMetadata(
+  admin: any,
   productId: string,
   shop: string,
   formData: FormData,
@@ -127,6 +152,9 @@ async function updateStoneMetadata(
   const color = formData.get("color") as string;
   const clarity = formData.get("clarity") as string;
   const price = parseFloat(formData.get("price") as string);
+
+  // Phase 2.0: Diamond type (mined/lab_grown/fancy_color)
+  const diamondType = (formData.get("diamondType") as string) || "mined";
 
   const certificate = formData.get("certificate") as string;
   const certificateNumber = formData.get("certificateNumber") as string;
@@ -163,7 +191,42 @@ async function updateStoneMetadata(
   validateCarat(carat);
   validatePrice(price);
 
-  // Update metadata
+  // Validate diamond type
+  if (!["mined", "lab_grown", "fancy_color"].includes(diamondType)) {
+    throw new ValidationError(
+      "Diamond type must be one of: mined, lab_grown, fancy_color",
+    );
+  }
+
+  // Phase 2.0: Write to Shopify metafields (source of truth)
+  const metafieldsResult = await writeDiamondMetafields(admin, productId, {
+    type: stoneType === "diamond" ? "diamond" : "gemstone",
+    shape: shape as any, // Validated above
+    carat,
+    diamond_type: diamondType as any, // Validated above
+    cut: (cut || undefined) as any,
+    color: (color || undefined) as any,
+    clarity: (clarity || undefined) as any,
+    certificate: (certificate || undefined) as any,
+    certificate_number: certificateNumber || undefined,
+    certificate_url: certificateUrl || undefined,
+    measurements: measurements || undefined,
+    table_percent: tablePercent || undefined,
+    depth_percent: depthPercent || undefined,
+    polish: polish || undefined,
+    symmetry: symmetry || undefined,
+    fluorescence: fluorescence || undefined,
+  });
+
+  if (!metafieldsResult.success) {
+    console.error(
+      "Warning: Failed to write some metafields:",
+      metafieldsResult.errors,
+    );
+    // Continue anyway - metafields will sync later via webhook
+  }
+
+  // Update app database (cache)
   const metadata = await prisma.stoneMetadata.upsert({
     where: { productId },
     create: {
@@ -175,6 +238,7 @@ async function updateStoneMetadata(
       cut: cut || null,
       color: color || null,
       clarity: clarity || null,
+      diamondType, // Phase 2.0
       price,
       certificate: certificate || null,
       certificateNumber: certificateNumber || null,
@@ -194,6 +258,7 @@ async function updateStoneMetadata(
       cut: cut || null,
       color: color || null,
       clarity: clarity || null,
+      diamondType, // Phase 2.0
       price,
       certificate: certificate || null,
       certificateNumber: certificateNumber || null,
@@ -212,5 +277,6 @@ async function updateStoneMetadata(
     success: true,
     type: "stone",
     metadata,
+    metafieldsWritten: metafieldsResult.success,
   });
 }
