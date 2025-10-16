@@ -17,7 +17,14 @@
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
-    "typecheck": "react-router typegen && tsc --noEmit"
+    "typecheck": "react-router typegen && tsc --noEmit",
+    "test:local": "./scripts/quick-test-local.sh",
+    "db:migrate": "npx prisma migrate dev",
+    "db:studio": "npx prisma studio",
+    "db:reset": "npx prisma migrate reset",
+    "phase3:setup-db": "./scripts/setup-postgresql.sh",
+    "phase3:deploy": "./scripts/deploy-heroku.sh",
+    "phase3:monitor": "./scripts/setup-monitoring.sh"
   },
   "type": "module",
   "engines": {

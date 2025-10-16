@@ -32,6 +32,69 @@ model Session {
 }
 
 // ============================================================================
+// PHASE 3.0: SAAS MULTI-TENANT MODELS
+// ============================================================================
+
+// Merchant: Represents each shop that installs the app
+model Merchant {
+  id   String @id @default(cuid())
+  shop String @unique // Shopify shop domain (e.g., "mystore.myshopify.com")
+
+  // Shopify integration
+  shopifyDomain String // Primary shop domain
+  accessToken   String // Encrypted in production
+
+  // Merchant information
+  name   String? // Store name
+  email  String? // Owner email
+  phone  String? // Contact phone
+  status String  @default("active") // "active" | "suspended" | "cancelled"
+
+  // Onboarding tracking
+  settings String? // JSON: { onboardingCompleted, onboardingStep, etc. }
+
+  // Timestamps
+  installedAt   DateTime  @default(now())
+  uninstalledAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  subscriptions Subscription[]
+
+  @@index([shop])
+  @@index([status])
+}
+
+// Subscription: Manages billing subscriptions via Shopify Billing API
+model Subscription {
+  id       String   @id @default(cuid())
+  shop     String // Reference to merchant shop
+  merchant Merchant @relation(fields: [shop], references: [shop], onDelete: Cascade)
+
+  // Shopify subscription
+  shopifySubscriptionId String @unique // Shopify subscription GID
+
+  // Plan details
+  plan   String // "starter" | "professional" | "enterprise"
+  status String @default("PENDING") // "ACTIVE" | "CANCELLED" | "FROZEN" | "PENDING"
+
+  // Billing cycle
+  currentPeriodEnd   DateTime
+  trialDaysRemaining Int      @default(0)
+
+  // Plan features (stored as JSON)
+  features String? // JSON: { maxProducts, inventoryFeeds, analytics, etc. }
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shop, status])
+  @@index([status])
+}
+
+// ============================================================================
 // RING BUILDER MODELS
 // ============================================================================
 

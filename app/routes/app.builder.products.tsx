@@ -28,6 +28,7 @@ import {
   AddSettingModal,
   type SettingFormData,
 } from "~/components/admin/AddSettingModal";
+import { parseShopifyGid } from "~/utils/shopify-helpers";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { admin, session } = await authenticate.admin(request);
@@ -188,7 +189,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
 
   const formData = await request.formData();
@@ -213,8 +214,9 @@ export async function action({ request }: ActionFunctionArgs) {
     };
 
     // Save to database and metafields via existing API endpoint
+    const numericProductId = parseShopifyGid(productId);
     const saveResponse = await fetch(
-      `/api/admin/products/${productId}/metadata`,
+      `/api/admin/products/${numericProductId}/metadata`,
       {
         method: "POST",
         headers: {
@@ -244,8 +246,9 @@ export async function action({ request }: ActionFunctionArgs) {
     };
 
     // Save to database and metafields via existing API endpoint
+    const numericProductId = parseShopifyGid(productId);
     const saveResponse = await fetch(
-      `/api/admin/products/${productId}/metadata`,
+      `/api/admin/products/${numericProductId}/metadata`,
       {
         method: "POST",
         headers: {
