@@ -19,7 +19,7 @@ export function StepNavigation() {
 
   const canNavigateToStep = (step: number) => {
     if (step === 1) return true;
-    if (step === 2) return !!selectedSetting;
+    if (step === 2) return true;
     if (step === 3) return !!selectedStone && !!ringSize;
     return false;
   };

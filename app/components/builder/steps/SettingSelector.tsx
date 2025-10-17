@@ -5,11 +5,14 @@
  */
 
 import React, { useState, useEffect } from "react";
-import type { Setting } from "~/types/builder";
+import type { Setting, MetalType } from "~/types/builder";
 import { LoadingSpinner } from "~/components/shared/LoadingSpinner";
 import { ErrorMessage } from "~/components/shared/ErrorMessage";
-import { FilterSidebar } from "../FilterSidebar";
 import { SettingCard } from "../SettingCard";
+import { ActionBar } from "../ActionBar";
+import { StyleImageSelector } from "../StyleImageSelector";
+import { MetalGridSelector } from "../MetalGridSelector";
+import { PriceRangeDisplay } from "../PriceRangeDisplay";
 
 export function SettingSelector({ shop }: { shop: string }) {
   const [settings, setSettings] = useState<Setting[]>([]);
@@ -17,13 +20,38 @@ export function SettingSelector({ shop }: { shop: string }) {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     style: [] as string[],
-    metalType: [] as string[],
+    metalType: [] as MetalType[],
     priceMin: 0,
     priceMax: 50000,
   });
+  const fetchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleSaveSearch = () => {
+    console.log("Save search", filters);
+  };
+
+  const handleReset = () => {
+    setFilters({
+      style: [],
+      metalType: [],
+      priceMin: 0,
+      priceMax: 50000,
+    });
+  };
 
   useEffect(() => {
-    fetchSettings();
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    fetchTimeoutRef.current = setTimeout(() => {
+      fetchSettings();
+    }, 500);
+
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
   }, [filters]);
 
   const fetchSettings = async () => {
@@ -71,13 +99,35 @@ export function SettingSelector({ shop }: { shop: string }) {
         <p>Select the perfect foundation for your ring</p>
       </div>
 
-      <div className="selector-content">
-        <FilterSidebar
-          filters={filters}
-          onFilterChange={setFilters}
-          type="settings"
+      <ActionBar
+        onSaveSearch={handleSaveSearch}
+        onReset={handleReset}
+      />
+
+      <div className="filters-section">
+        <StyleImageSelector
+          selectedStyles={filters.style}
+          onChange={(styles) => setFilters({ ...filters, style: styles })}
         />
 
+        <MetalGridSelector
+          selectedMetals={filters.metalType}
+          onChange={(metals) => setFilters({ ...filters, metalType: metals })}
+        />
+
+        <PriceRangeDisplay
+          minPrice={filters.priceMin}
+          maxPrice={filters.priceMax}
+          onMinChange={(min) => setFilters({ ...filters, priceMin: min })}
+          onMaxChange={(max) => setFilters({ ...filters, priceMax: max })}
+        />
+      </div>
+
+      <div className="results-bar">
+        <span className="results-count">{settings.length} Settings Found</span>
+      </div>
+
+      <div className="selector-content">
         <div className="settings-grid">
           {settings.length === 0 ? (
             <div className="empty-state">
@@ -110,7 +160,7 @@ export function SettingSelector({ shop }: { shop: string }) {
         }
 
         .selector-header {
-          margin-bottom: 32px;
+          margin-bottom: 24px;
         }
 
         .selector-header h2 {
@@ -126,10 +176,32 @@ export function SettingSelector({ shop }: { shop: string }) {
           margin: 0;
         }
 
+        .filters-section {
+          background: #f9f9f9;
+          padding: 24px;
+          border-radius: 8px;
+          margin-bottom: 24px;
+        }
+
+        .results-bar {
+          background: white;
+          border: 1px solid #e0e0e0;
+          padding: 12px 20px;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .results-count {
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+        }
+
         .selector-content {
-          display: grid;
-          grid-template-columns: 260px 1fr;
-          gap: 32px;
+          width: 100%;
         }
 
         .settings-grid {
@@ -166,12 +238,12 @@ export function SettingSelector({ shop }: { shop: string }) {
         }
 
         @media (max-width: 1024px) {
-          .selector-content {
-            grid-template-columns: 1fr;
-          }
-
           .settings-grid {
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          }
+
+          .filters-section {
+            padding: 16px;
           }
         }
 

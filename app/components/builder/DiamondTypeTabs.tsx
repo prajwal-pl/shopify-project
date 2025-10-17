@@ -1,209 +1,199 @@
-/**
- * Diamond Type Tabs Component
- *
- * Phase 2.0: Tab interface for diamond categorization.
- *
- * Features:
- * - Three tabs: Mined, Lab Grown, Fancy Color
- * - Count badges showing number of diamonds
- * - Active tab styling (burgundy #6D2932)
- * - Mobile-responsive (full-width)
- * - Smooth transitions
- */
-
+import React from "react";
 import type { DiamondType } from "~/types/builder";
 
 interface DiamondTypeTabsProps {
-  activeType: DiamondType;
-  onTypeChange: (type: DiamondType) => void;
-  counts: {
-    mined: number;
-    lab_grown: number;
-    fancy_color: number;
-  };
+  selectedType: DiamondType;
+  onChange: (type: DiamondType) => void;
+  onSaveSearch?: () => void;
+  onReset?: () => void;
+  compareCount?: number;
 }
 
-interface Tab {
-  type: DiamondType;
-  label: string;
-  icon: string;
-}
-
-const TABS: Tab[] = [
-  { type: "mined", label: "Mined", icon: "💎" },
-  { type: "lab_grown", label: "Lab Grown", icon: "🔬" },
-  { type: "fancy_color", label: "Fancy Color", icon: "🌈" },
+const DIAMOND_TYPES: { value: DiamondType; label: string }[] = [
+  { value: "mined", label: "Mined" },
+  { value: "lab_grown", label: "Lab Grown" },
+  { value: "fancy_color", label: "Fancy Color" },
 ];
 
 export function DiamondTypeTabs({
-  activeType,
-  onTypeChange,
-  counts,
+  selectedType,
+  onChange,
+  onSaveSearch,
+  onReset,
+  compareCount = 0
 }: DiamondTypeTabsProps) {
   return (
-    <div className="diamond-type-tabs">
-      <div className="tabs-container">
-        {TABS.map((tab) => {
-          const isActive = activeType === tab.type;
-          const count = counts[tab.type] || 0;
+    <div className="diamond-type-tabs-container">
+      <div className="tabs-section">
+        {DIAMOND_TYPES.map((type) => (
+          <button
+            key={type.value}
+            type="button"
+            className={`tab-button ${selectedType === type.value ? "active" : ""}`}
+            onClick={() => onChange(type.value)}
+          >
+            <span className="tab-label">{type.label}</span>
+            <span className="info-icon" title={`Select ${type.label} diamonds`}>ⓘ</span>
+          </button>
+        ))}
 
-          return (
-            <button
-              key={tab.type}
-              type="button"
-              className={`tab-button ${isActive ? "active" : ""}`}
-              onClick={() => onTypeChange(tab.type)}
-              aria-label={`View ${tab.label} diamonds`}
-              aria-selected={isActive}
-              role="tab"
-            >
-              <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-              <span className="tab-count">({count.toLocaleString()})</span>
-            </button>
-          );
-        })}
+        <button
+          type="button"
+          className="tab-button compare-tab"
+          disabled={compareCount === 0}
+        >
+          <span className="tab-label">Compare</span>
+        </button>
+      </div>
+
+      <div className="actions-section">
+        {onSaveSearch && (
+          <button
+            type="button"
+            className="action-button"
+            onClick={onSaveSearch}
+          >
+            <span>💾 Save Search</span>
+          </button>
+        )}
+
+        {onReset && (
+          <button
+            type="button"
+            className="action-button"
+            onClick={onReset}
+          >
+            <span>🔄 Reset</span>
+          </button>
+        )}
       </div>
 
       <style>{`
-        .diamond-type-tabs {
-          margin-bottom: 2rem;
-        }
-
-        .tabs-container {
+        .diamond-type-tabs-container {
+          background: #7c2d5e;
+          padding: 12px 20px;
           display: flex;
-          gap: 0.5rem;
-          border-bottom: 2px solid #e0e0e0;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+          border-radius: 4px;
         }
 
-        /* Mobile: Full-width stacked tabs */
-        @media (max-width: 640px) {
-          .tabs-container {
-            flex-direction: column;
-            gap: 0.25rem;
-            border-bottom: none;
-          }
+        .tabs-section {
+          display: flex;
+          gap: 8px;
+          align-items: center;
         }
 
         .tab-button {
-          flex: 1;
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 4px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          padding: 1rem 1.5rem;
-          background: white;
-          border: 2px solid #e0e0e0;
-          border-bottom: none;
-          border-radius: 8px 8px 0 0;
-          cursor: pointer;
-          font-size: 1rem;
-          font-weight: 500;
-          color: #666;
-          transition: all 0.25s ease;
-          position: relative;
+          gap: 6px;
         }
 
-        /* Mobile: Full width with bottom border */
-        @media (max-width: 640px) {
-          .tab-button {
-            width: 100%;
-            border-radius: 6px;
-            border-bottom: 2px solid #e0e0e0;
-          }
-        }
-
-        .tab-button:hover:not(.active) {
-          background: #f7f7f7;
-          border-color: #ccc;
-          color: #333;
+        .tab-button:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.3);
         }
 
         .tab-button.active {
-          background: #6D2932;
-          border-color: #6D2932;
-          color: white;
-          box-shadow: 0 4px 12px rgba(109, 41, 50, 0.2);
-          z-index: 1;
+          background: white;
+          color: #7c2d5e;
+          border-color: white;
         }
 
-        .tab-button:focus {
-          outline: 2px solid #6D2932;
-          outline-offset: 2px;
-        }
-
-        .tab-icon {
-          font-size: 1.25rem;
+        .tab-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .tab-label {
+          white-space: nowrap;
+        }
+
+        .info-icon {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.3);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: bold;
+        }
+
+        .tab-button.active .info-icon {
+          background: #7c2d5e;
+          color: white;
+        }
+
+        .compare-tab {
+          margin-left: 16px;
+        }
+
+        .actions-section {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .action-button {
+          background: transparent;
+          border: 1px solid white;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 4px;
+          font-size: 14px;
           font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
-        .tab-count {
-          font-size: 0.9rem;
-          opacity: 0.8;
+        .action-button:hover {
+          background: rgba(255, 255, 255, 0.1);
         }
 
-        .tab-button.active .tab-count {
-          opacity: 0.9;
-          font-weight: 600;
-        }
-
-        /* Tablet: Slightly smaller */
-        @media (min-width: 641px) and (max-width: 1023px) {
-          .tab-button {
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
+        @media (max-width: 768px) {
+          .diamond-type-tabs-container {
+            flex-direction: column;
+            gap: 12px;
           }
 
-          .tab-icon {
-            font-size: 1.1rem;
+          .tabs-section {
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
           }
-        }
 
-        /* Large desktop: More spacing */
-        @media (min-width: 1280px) {
+          .actions-section {
+            width: 100%;
+            justify-content: center;
+          }
+
           .tab-button {
-            padding: 1.25rem 2rem;
+            flex: 1;
+            min-width: 100px;
+            justify-content: center;
+          }
+
+          .compare-tab {
+            margin-left: 0;
           }
         }
       `}</style>
     </div>
   );
-}
-
-/**
- * Get emoji icon for diamond types
- */
-function getIconEmoji(value: string, type: "shape" | "style"): string {
-  if (type === "shape") {
-    const shapeEmojis: Record<string, string> = {
-      round: "⚪",
-      princess: "◆",
-      oval: "⬭",
-      pear: "💧",
-      marquise: "🔶",
-      heart: "♥️",
-      emerald: "▭",
-      cushion: "◻️",
-      asscher: "▦",
-      radiant: "◊",
-    };
-    return shapeEmojis[value] || "💎";
-  }
-
-  // Style emojis
-  const styleEmojis: Record<string, string> = {
-    halo: "⭕",
-    solitaire: "💍",
-    three_stone: "⚫",
-    single_row: "═",
-    trellis: "⚡",
-    multirow: "≡",
-    vintage: "🏛️",
-    pave: "✨",
-    bypass: "∞",
-  };
-  return styleEmojis[value] || "💍";
 }

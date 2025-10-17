@@ -159,15 +159,8 @@ export function BuilderProvider({
   };
 
   const goToStep = (step: BuilderStep) => {
-    // Validate before allowing step change
-    if (step === 2 && !selectedSetting) {
-      return; // Can't go to step 2 without a setting
-    }
-    if (step === 3 && !selectedStone) {
-      return; // Can't go to step 3 without a stone
-    }
-    if (step === 4 && !ringSize) {
-      return; // Can't go to step 4 without ring size
+    if (step === 3 && (!selectedStone || !ringSize)) {
+      return;
     }
     setCurrentStep(step);
   };
