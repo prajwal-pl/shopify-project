@@ -321,6 +321,7 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           display: flex;
           flex-direction: column;
           gap: 20px;
+          padding-right: 40px;
         }
 
         .detail-header {
@@ -505,12 +506,22 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
             gap: 30px;
           }
 
+          .detail-right {
+            padding-right: 20px;
+          }
+
           .action-buttons {
             grid-template-columns: 1fr;
           }
 
           .specs-grid {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .detail-right {
+            padding-right: 0;
           }
         }
       `}</style>

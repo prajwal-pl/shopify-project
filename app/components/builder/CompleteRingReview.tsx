@@ -271,6 +271,7 @@ export function CompleteRingReview() {
           display: flex;
           flex-direction: column;
           gap: 20px;
+          padding-right: 40px;
         }
 
         .detail-header {
@@ -489,12 +490,22 @@ export function CompleteRingReview() {
             gap: 30px;
           }
 
+          .review-right {
+            padding-right: 20px;
+          }
+
           .action-buttons-grid {
             grid-template-columns: 1fr;
           }
 
           .spec-row {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .review-right {
+            padding-right: 0;
           }
         }
       `}</style>

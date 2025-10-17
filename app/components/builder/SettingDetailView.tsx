@@ -260,6 +260,7 @@ export function SettingDetailView({ setting }: SettingDetailViewProps) {
           display: flex;
           flex-direction: column;
           gap: 20px;
+          padding-right: 40px;
         }
 
         .detail-header {
@@ -438,12 +439,22 @@ export function SettingDetailView({ setting }: SettingDetailViewProps) {
             gap: 30px;
           }
 
+          .detail-right {
+            padding-right: 20px;
+          }
+
           .option-row {
             grid-template-columns: 1fr;
           }
 
           .action-buttons {
             grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .detail-right {
+            padding-right: 0;
           }
         }
       `}</style>

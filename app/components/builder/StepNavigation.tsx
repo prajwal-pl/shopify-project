@@ -27,9 +27,7 @@ export function StepNavigation() {
   return (
     <div className="step-navigation">
       {STEPS.map((step) => {
-        const isActive = currentStep === step.number ||
-          (step.number === 2 && (currentStep === 2 || currentStep === 3 || currentStep === 4)) ||
-          (step.number === 3 && (currentStep === 3 || currentStep === 4));
+        const isActive = currentStep === step.number;
         const isCompleted = (step.number === 1 && currentStep > 1) ||
           (step.number === 2 && currentStep === 3);
         const canNavigate = canNavigateToStep(step.number);
@@ -94,6 +92,11 @@ export function StepNavigation() {
           transform: translateY(-2px);
         }
 
+        .chevron-step.active.clickable:hover {
+          background: #63244a;
+          transform: translateY(-2px);
+        }
+
         .chevron-step.active {
           background: #7c2d5e;
           border-color: #7c2d5e;
@@ -112,6 +115,16 @@ export function StepNavigation() {
         .chevron-step.completed {
           background: #e8e8e8;
           border-color: #c0c0c0;
+        }
+
+        .chevron-step.completed .chevron-label,
+        .chevron-step.completed .chevron-sublabel {
+          color: #333;
+          font-weight: 600;
+        }
+
+        .chevron-step.completed .chevron-icon {
+          color: #333;
         }
 
         .chevron-content {
