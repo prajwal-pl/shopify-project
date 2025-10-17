@@ -8,10 +8,9 @@ import React from "react";
 import { useBuilder } from "./BuilderProvider";
 
 const STEPS = [
-  { number: 1, label: "Choose Setting", icon: "⚙️" },
-  { number: 2, label: "Select Stone", icon: "💎" },
-  { number: 3, label: "Customize", icon: "✨" },
-  { number: 4, label: "Review", icon: "✓" },
+  { number: 1, label: "Choose Your", sublabel: "Setting", icon: "💍" },
+  { number: 2, label: "Choose Your", sublabel: "Diamond", icon: "💎" },
+  { number: 3, label: "Review", sublabel: "Complete Ring", icon: "✓" },
 ] as const;
 
 export function StepNavigation() {
@@ -21,36 +20,32 @@ export function StepNavigation() {
   const canNavigateToStep = (step: number) => {
     if (step === 1) return true;
     if (step === 2) return !!selectedSetting;
-    if (step === 3) return !!selectedStone;
-    if (step === 4) return !!ringSize;
+    if (step === 3) return !!selectedStone && !!ringSize;
     return false;
   };
 
   return (
     <div className="step-navigation">
-      {STEPS.map((step, index) => {
-        const isActive = currentStep === step.number;
-        const isCompleted = currentStep > step.number;
+      {STEPS.map((step) => {
+        const isActive = currentStep === step.number ||
+          (step.number === 2 && (currentStep === 2 || currentStep === 3 || currentStep === 4)) ||
+          (step.number === 3 && (currentStep === 3 || currentStep === 4));
+        const isCompleted = (step.number === 1 && currentStep > 1) ||
+          (step.number === 2 && currentStep === 3);
         const canNavigate = canNavigateToStep(step.number);
 
         return (
-          <React.Fragment key={step.number}>
-            <div
-              className={`step ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""} ${canNavigate ? "clickable" : ""}`}
-              onClick={() => canNavigate && goToStep(step.number as any)}
-            >
-              <div className="step-icon">{isCompleted ? "✓" : step.icon}</div>
-              <div className="step-content">
-                <div className="step-number">Step {step.number}</div>
-                <div className="step-label">{step.label}</div>
-              </div>
+          <div
+            key={step.number}
+            className={`chevron-step ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""} ${canNavigate ? "clickable" : ""}`}
+            onClick={() => canNavigate && goToStep(step.number as any)}
+          >
+            <div className="chevron-content">
+              <div className="chevron-label">{step.label}</div>
+              <div className="chevron-sublabel">{step.sublabel}</div>
             </div>
-            {index < STEPS.length - 1 && (
-              <div
-                className={`step-connector ${isCompleted ? "completed" : ""}`}
-              />
-            )}
-          </React.Fragment>
+            <div className="chevron-icon">{step.icon}</div>
+          </div>
         );
       })}
 
@@ -59,113 +54,114 @@ export function StepNavigation() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0;
           margin: 0 auto 40px;
-          max-width: 900px;
+          max-width: 1200px;
+          gap: 0;
         }
 
-        .step {
+        .chevron-step {
+          flex: 1;
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 16px 20px;
-          background: white;
-          border: 2px solid #e5e5e5;
-          border-radius: 8px;
+          justify-content: space-between;
+          padding: 20px 40px;
+          position: relative;
+          background: #f5f5f5;
+          border: 2px solid #e0e0e0;
           transition: all 0.3s ease;
-          flex: 1;
-          min-width: 0;
+          clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 50%, calc(100% - 25px) 100%, 0 100%, 25px 50%);
+          margin-left: -15px;
+          min-height: 80px;
         }
 
-        .step.clickable {
+        .chevron-step:first-child {
+          clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 50%, calc(100% - 25px) 100%, 0 100%);
+          margin-left: 0;
+          padding-left: 30px;
+        }
+
+        .chevron-step:last-child {
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 25px 50%);
+          padding-right: 30px;
+        }
+
+        .chevron-step.clickable {
           cursor: pointer;
         }
 
-        .step.clickable:hover {
-          border-color: #d4af37;
-          box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+        .chevron-step.clickable:hover {
+          background: #e8e8e8;
+          transform: translateY(-2px);
         }
 
-        .step.active {
-          border-color: #d4af37;
-          background: #fffbf0;
+        .chevron-step.active {
+          background: #7c2d5e;
+          border-color: #7c2d5e;
+          z-index: 2;
         }
 
-        .step.completed {
-          border-color: #10b981;
-          background: #f0fdf4;
-        }
-
-        .step-icon {
-          font-size: 24px;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f6f6f7;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .step.active .step-icon {
-          background: #d4af37;
+        .chevron-step.active .chevron-label,
+        .chevron-step.active .chevron-sublabel {
           color: white;
         }
 
-        .step.completed .step-icon {
-          background: #10b981;
+        .chevron-step.active .chevron-icon {
           color: white;
         }
 
-        .step-content {
+        .chevron-step.completed {
+          background: #e8e8e8;
+          border-color: #c0c0c0;
+        }
+
+        .chevron-content {
           flex: 1;
-          min-width: 0;
+          text-align: left;
+          z-index: 1;
         }
 
-        .step-number {
-          font-size: 12px;
-          color: #6d7175;
-          margin-bottom: 2px;
-        }
-
-        .step-label {
+        .chevron-label {
           font-size: 14px;
-          font-weight: 600;
-          color: #202223;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          color: #666;
+          margin-bottom: 4px;
+          font-weight: 400;
         }
 
-        .step-connector {
-          width: 40px;
-          height: 2px;
-          background: #e5e5e5;
+        .chevron-sublabel {
+          font-size: 18px;
+          font-weight: 600;
+          color: #333;
+          line-height: 1.2;
+        }
+
+        .chevron-icon {
+          font-size: 28px;
+          margin-left: 16px;
+          z-index: 1;
           flex-shrink: 0;
         }
 
-        .step-connector.completed {
-          background: #10b981;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 968px) {
           .step-navigation {
             flex-direction: column;
-            gap: 12px;
+            gap: 0;
           }
 
-          .step {
+          .chevron-step {
             width: 100%;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), 50% 100%, 0 calc(100% - 15px));
+            margin-left: 0;
+            margin-top: -10px;
+            padding: 20px 30px;
           }
 
-          .step-connector {
-            width: 2px;
-            height: 30px;
+          .chevron-step:first-child {
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), 50% 100%, 0 calc(100% - 15px));
+            margin-top: 0;
           }
 
-          .step-label {
-            white-space: normal;
+          .chevron-step:last-child {
+            clip-path: polygon(0 0, 50% 15px, 100% 0, 100% 100%, 0 100%);
           }
         }
       `}</style>

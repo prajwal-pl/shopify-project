@@ -77,7 +77,7 @@ export function PriceSummary() {
       <style>{`
         .price-summary {
           background: white;
-          border: 2px solid #d4af37;
+          border: 2px solid #7c2d5e;
           border-radius: 8px;
           padding: 24px;
         }
@@ -96,7 +96,7 @@ export function PriceSummary() {
         .total-price {
           font-size: 32px;
           font-weight: 700;
-          color: #d4af37;
+          color: #7c2d5e;
           margin-bottom: 16px;
         }
 
