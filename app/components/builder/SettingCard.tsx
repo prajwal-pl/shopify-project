@@ -11,7 +11,12 @@ import { formatPrice } from "~/utils/formatters";
 import { METAL_TYPES } from "~/utils/constants";
 import type { MetalType } from "~/utils/constants";
 
-export function SettingCard({ setting }: { setting: Setting }) {
+interface SettingCardProps {
+  setting: Setting;
+  onSelect?: () => void;
+}
+
+export function SettingCard({ setting, onSelect }: SettingCardProps) {
   const { selectSetting } = useBuilder();
   const [showModal, setShowModal] = useState(false);
   const [selectedMetal, setSelectedMetal] = useState<MetalType | null>(null);
@@ -43,7 +48,16 @@ export function SettingCard({ setting }: { setting: Setting }) {
           </p>
           <p className="card-style">{setting.style}</p>
 
-          <button onClick={() => setShowModal(true)} className="view-button">
+          <button
+            onClick={() => {
+              if (onSelect) {
+                onSelect();
+              } else {
+                setShowModal(true);
+              }
+            }}
+            className="view-button"
+          >
             View Details
           </button>
         </div>

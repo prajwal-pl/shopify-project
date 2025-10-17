@@ -463,6 +463,26 @@ export interface BuilderState {
   ringSize?: RingSize;
   sideStones?: SideStonesConfig;
   priceBreakdown: PriceBreakdown;
+  viewDetailSetting?: Setting | RingProduct;
+  viewDetailStone?: Stone;
+  showSettingDetail: boolean;
+  showStoneDetail: boolean;
+}
+
+export interface RingProduct {
+  id: string;
+  title: string;
+  sku: string;
+  category: string;
+  collection: string;
+  price: number | null;
+  priceRaw: string;
+  metalType: string;
+  mainImage: string;
+  thumbnails: string[];
+  description: string;
+  availability: string;
+  url: string;
 }
 
 /**
@@ -476,6 +496,9 @@ export interface BuilderActions {
   updateSideStones: (config: SideStonesConfig) => void;
   goToStep: (step: BuilderStep) => void;
   resetBuilder: () => void;
+  showSettingDetailView: (setting: Setting | RingProduct) => void;
+  showStoneDetailView: (stone: Stone) => void;
+  hideDetailViews: () => void;
   calculatePrice: () => void;
 }
 

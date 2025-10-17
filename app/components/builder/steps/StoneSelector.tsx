@@ -19,7 +19,7 @@ import { ResultsControlBar } from "../ResultsControlBar";
 import { DiamondCard } from "~/components/ui/DiamondCard";
 
 export function StoneSelector({ shop }: { shop: string }) {
-  const { selectedSetting, selectStone } = useBuilder();
+  const { selectedSetting, selectStone, showStoneDetailView } = useBuilder();
   const [stones, setStones] = useState<Stone[]>([]);
   const [mockDiamonds, setMockDiamonds] = useState<Stone[]>([]);
   const [allMockDiamonds, setAllMockDiamonds] = useState<Stone[]>([]);
@@ -332,9 +332,8 @@ export function StoneSelector({ shop }: { shop: string }) {
                     key={diamond.id}
                     diamond={diamond}
                     onSelect={(d) => {
-                      console.log('Selected diamond:', d);
                       selectStone(d);
-                      alert(`Selected: ${d.carat}ct ${d.shape} diamond - $${d.price.toLocaleString()}`);
+                      showStoneDetailView(d);
                     }}
                   />
                 ))}

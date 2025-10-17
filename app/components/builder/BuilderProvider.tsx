@@ -13,6 +13,7 @@ import type {
   Stone,
   PriceBreakdown,
   SideStonesConfig,
+  RingProduct,
 } from "~/types/builder";
 import type { MetalType, RingSize } from "~/utils/constants";
 
@@ -46,6 +47,12 @@ export function BuilderProvider({
     markupPercent: 0,
     total: 0,
   });
+  const [showSettingDetail, setShowSettingDetail] = useState(false);
+  const [showStoneDetail, setShowStoneDetail] = useState(false);
+  const [viewDetailSetting, setViewDetailSetting] = useState<
+    Setting | RingProduct | undefined
+  >();
+  const [viewDetailStone, setViewDetailStone] = useState<Stone | undefined>();
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -178,7 +185,26 @@ export function BuilderProvider({
       markupPercent: 0,
       total: 0,
     });
+    setShowSettingDetail(false);
+    setShowStoneDetail(false);
+    setViewDetailSetting(undefined);
+    setViewDetailStone(undefined);
     localStorage.removeItem(STORAGE_KEY);
+  };
+
+  const showSettingDetailView = (setting: Setting | RingProduct) => {
+    setViewDetailSetting(setting);
+    setShowSettingDetail(true);
+  };
+
+  const showStoneDetailView = (stone: Stone) => {
+    setViewDetailStone(stone);
+    setShowStoneDetail(true);
+  };
+
+  const hideDetailViews = () => {
+    setShowSettingDetail(false);
+    setShowStoneDetail(false);
   };
 
   const value: BuilderContextType = {
@@ -189,6 +215,10 @@ export function BuilderProvider({
     ringSize,
     sideStones,
     priceBreakdown,
+    showSettingDetail,
+    showStoneDetail,
+    viewDetailSetting,
+    viewDetailStone,
     selectSetting,
     selectStone,
     updateMetalType,
@@ -197,6 +227,9 @@ export function BuilderProvider({
     goToStep,
     resetBuilder,
     calculatePrice,
+    showSettingDetailView,
+    showStoneDetailView,
+    hideDetailViews,
   };
 
   return (

@@ -12,6 +12,9 @@ import { SettingSelector } from "./steps/SettingSelector";
 import { StoneSelector } from "./steps/StoneSelector";
 import { Customization } from "./steps/Customization";
 import { Review } from "./steps/Review";
+import { SettingDetailView } from "./SettingDetailView";
+import { DiamondDetailView } from "./DiamondDetailView";
+import { CompleteRingReview } from "./CompleteRingReview";
 
 interface BuilderAppProps {
   shop: string;
@@ -26,7 +29,7 @@ export function BuilderApp({ shop }: BuilderAppProps) {
 }
 
 function BuilderContent({ shop }: { shop: string }) {
-  const { currentStep } = useBuilder();
+  const { currentStep, showSettingDetail, showStoneDetail, viewDetailSetting, viewDetailStone } = useBuilder();
 
   return (
     <div className="ring-builder">
@@ -34,9 +37,15 @@ function BuilderContent({ shop }: { shop: string }) {
 
       <div className="builder-container">
         <div className="builder-main">
-          {currentStep === 1 && <SettingSelector shop={shop} />}
-          {(currentStep === 2 || currentStep === 3 || currentStep === 4) && <StoneSelector shop={shop} />}
-          {currentStep === 3 && <Review shop={shop} />}
+          {currentStep === 1 && !showSettingDetail && <SettingSelector shop={shop} />}
+          {currentStep === 1 && showSettingDetail && viewDetailSetting && (
+            <SettingDetailView setting={viewDetailSetting} />
+          )}
+          {currentStep === 2 && !showStoneDetail && <StoneSelector shop={shop} />}
+          {currentStep === 2 && showStoneDetail && viewDetailStone && (
+            <DiamondDetailView stone={viewDetailStone} />
+          )}
+          {currentStep === 3 && <CompleteRingReview />}
         </div>
 
         {(currentStep === 1 || currentStep === 2) && (

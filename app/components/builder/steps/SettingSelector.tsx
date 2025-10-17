@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from "react";
 import type { Setting, MetalType } from "~/types/builder";
 import type { RingProduct } from "~/types/ring-product";
+import { useBuilder } from "../BuilderProvider";
 import { LoadingSpinner } from "~/components/shared/LoadingSpinner";
 import { ErrorMessage } from "~/components/shared/ErrorMessage";
 import { SettingCard } from "../SettingCard";
@@ -17,6 +18,7 @@ import { MetalGridSelector } from "../MetalGridSelector";
 import { PriceRangeDisplay } from "../PriceRangeDisplay";
 
 export function SettingSelector({ shop }: { shop: string}) {
+  const { showSettingDetailView } = useBuilder();
   const [settings, setSettings] = useState<Setting[]>([]);
   const [ringProducts, setRingProducts] = useState<RingProduct[]>([]);
   const [allRingProducts, setAllRingProducts] = useState<RingProduct[]>([]);
@@ -197,8 +199,7 @@ export function SettingSelector({ shop }: { shop: string}) {
                       key={product.id}
                       product={product}
                       onSelect={(p) => {
-                        console.log('Selected ring product:', p);
-                        alert(`Selected: ${p.title} - ${p.price ? '$' + p.price.toLocaleString() : 'Price on request'}`);
+                        showSettingDetailView(p);
                       }}
                     />
                   ))}
@@ -211,7 +212,11 @@ export function SettingSelector({ shop }: { shop: string}) {
                 <h3 className="section-title">Ring Settings</h3>
                 <div className="settings-grid">
                   {settings.map((setting) => (
-                    <SettingCard key={setting.id} setting={setting} />
+                    <SettingCard
+                      key={setting.id}
+                      setting={setting}
+                      onSelect={() => showSettingDetailView(setting)}
+                    />
                   ))}
                 </div>
               </div>
