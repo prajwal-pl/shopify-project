@@ -22,6 +22,7 @@ export function StoneSelector({ shop }: { shop: string }) {
   const [stones, setStones] = useState<Stone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [diamondType, setDiamondType] = useState<DiamondType>("mined");
   const [filters, setFilters] = useState({
     shape: selectedSetting?.compatibleShapes || [],
@@ -103,7 +104,9 @@ export function StoneSelector({ shop }: { shop: string }) {
   };
 
   const fetchStones = async () => {
-    setLoading(true);
+    if (isInitialLoad) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -139,6 +142,7 @@ export function StoneSelector({ shop }: { shop: string }) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setIsInitialLoad(false);
     }
   };
 

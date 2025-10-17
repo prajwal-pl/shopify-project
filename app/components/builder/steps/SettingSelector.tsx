@@ -18,6 +18,7 @@ export function SettingSelector({ shop }: { shop: string }) {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [filters, setFilters] = useState({
     style: [] as string[],
     metalType: [] as MetalType[],
@@ -55,7 +56,9 @@ export function SettingSelector({ shop }: { shop: string }) {
   }, [filters]);
 
   const fetchSettings = async () => {
-    setLoading(true);
+    if (isInitialLoad) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -81,6 +84,7 @@ export function SettingSelector({ shop }: { shop: string }) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setIsInitialLoad(false);
     }
   };
 
