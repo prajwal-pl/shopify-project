@@ -159,9 +159,6 @@ export function BuilderProvider({
   };
 
   const goToStep = (step: BuilderStep) => {
-    if (step === 3 && (!selectedStone || !ringSize)) {
-      return;
-    }
     setCurrentStep(step);
   };
 

@@ -6,16 +6,20 @@
 
 import React, { useState, useEffect } from "react";
 import type { Setting, MetalType } from "~/types/builder";
+import type { RingProduct } from "~/types/ring-product";
 import { LoadingSpinner } from "~/components/shared/LoadingSpinner";
 import { ErrorMessage } from "~/components/shared/ErrorMessage";
 import { SettingCard } from "../SettingCard";
+import { RingCard } from "~/components/ui/RingCard";
 import { ActionBar } from "../ActionBar";
 import { StyleImageSelector } from "../StyleImageSelector";
 import { MetalGridSelector } from "../MetalGridSelector";
 import { PriceRangeDisplay } from "../PriceRangeDisplay";
 
-export function SettingSelector({ shop }: { shop: string }) {
+export function SettingSelector({ shop }: { shop: string}) {
   const [settings, setSettings] = useState<Setting[]>([]);
+  const [ringProducts, setRingProducts] = useState<RingProduct[]>([]);
+  const [allRingProducts, setAllRingProducts] = useState<RingProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -39,6 +43,47 @@ export function SettingSelector({ shop }: { shop: string }) {
       priceMax: 50000,
     });
   };
+
+  useEffect(() => {
+    const loadRingProducts = async () => {
+      try {
+        const response = await fetch('/data/ring-products.json');
+        const data: RingProduct[] = await response.json();
+        setAllRingProducts(data);
+        setRingProducts(data);
+      } catch (err) {
+        console.error('Failed to load ring products:', err);
+      }
+    };
+    loadRingProducts();
+  }, []);
+
+  useEffect(() => {
+    const filterRingProducts = () => {
+      let filtered = [...allRingProducts];
+
+      if (filters.style.length > 0) {
+        filtered = filtered.filter(product =>
+          filters.style.some(style =>
+            product.title.toLowerCase().includes(style.toLowerCase()) ||
+            product.category.toLowerCase().includes(style.toLowerCase())
+          )
+        );
+      }
+
+      if (filters.metalType.length > 0) {
+        filtered = filtered.filter(product =>
+          filters.metalType.some(metal =>
+            product.metalType?.toLowerCase().includes(metal.toLowerCase())
+          )
+        );
+      }
+
+      setRingProducts(filtered);
+    };
+
+    filterRingProducts();
+  }, [filters, allRingProducts]);
 
   useEffect(() => {
     if (fetchTimeoutRef.current) {
@@ -128,34 +173,51 @@ export function SettingSelector({ shop }: { shop: string }) {
       </div>
 
       <div className="results-bar">
-        <span className="results-count">{settings.length} Settings Found</span>
+        <span className="results-count">
+          {settings.length} Settings • {ringProducts.length} Ring Products
+        </span>
       </div>
 
       <div className="selector-content">
-        <div className="settings-grid">
-          {settings.length === 0 ? (
-            <div className="empty-state">
-              <p>No settings found with your current filters.</p>
-              <button
-                onClick={() =>
-                  setFilters({
-                    style: [],
-                    metalType: [],
-                    priceMin: 0,
-                    priceMax: 50000,
-                  })
-                }
-                className="clear-filters-button"
-              >
-                Clear Filters
-              </button>
-            </div>
-          ) : (
-            settings.map((setting) => (
-              <SettingCard key={setting.id} setting={setting} />
-            ))
-          )}
-        </div>
+        {ringProducts.length === 0 && settings.length === 0 ? (
+          <div className="empty-state">
+            <p>No ring products or settings found with your current filters.</p>
+            <button onClick={handleReset} className="clear-filters-button">
+              Clear Filters
+            </button>
+          </div>
+        ) : (
+          <>
+            {ringProducts.length > 0 && (
+              <div className="results-section">
+                <h3 className="section-title">Ring Products</h3>
+                <div className="settings-grid">
+                  {ringProducts.map((product) => (
+                    <RingCard
+                      key={product.id}
+                      product={product}
+                      onSelect={(p) => {
+                        console.log('Selected ring product:', p);
+                        alert(`Selected: ${p.title} - ${p.price ? '$' + p.price.toLocaleString() : 'Price on request'}`);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {settings.length > 0 && (
+              <div className="results-section">
+                <h3 className="section-title">Ring Settings</h3>
+                <div className="settings-grid">
+                  {settings.map((setting) => (
+                    <SettingCard key={setting.id} setting={setting} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <style>{`
@@ -206,6 +268,23 @@ export function SettingSelector({ shop }: { shop: string }) {
 
         .selector-content {
           width: 100%;
+        }
+
+        .results-section {
+          margin-bottom: 40px;
+        }
+
+        .results-section:last-child {
+          margin-bottom: 0;
+        }
+
+        .section-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0 0 20px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid #7c2d5e;
         }
 
         .settings-grid {

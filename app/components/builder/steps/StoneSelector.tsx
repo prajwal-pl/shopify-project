@@ -16,10 +16,13 @@ import { ShapeIconSelector } from "../ShapeIconSelector";
 import { QualitySlider } from "../QualitySlider";
 import { PriceRangeDisplay } from "../PriceRangeDisplay";
 import { ResultsControlBar } from "../ResultsControlBar";
+import { DiamondCard } from "~/components/ui/DiamondCard";
 
 export function StoneSelector({ shop }: { shop: string }) {
-  const { selectedSetting } = useBuilder();
+  const { selectedSetting, selectStone } = useBuilder();
   const [stones, setStones] = useState<Stone[]>([]);
+  const [mockDiamonds, setMockDiamonds] = useState<Stone[]>([]);
+  const [allMockDiamonds, setAllMockDiamonds] = useState<Stone[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -55,6 +58,77 @@ export function StoneSelector({ shop }: { shop: string }) {
   });
   const [isMobile, setIsMobile] = useState(false);
   const fetchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const loadMockDiamonds = async () => {
+      try {
+        const response = await fetch('/data/mock-diamonds.json');
+        const data: Stone[] = await response.json();
+        setAllMockDiamonds(data);
+        setMockDiamonds(data);
+      } catch (err) {
+        console.error('Failed to load mock diamonds:', err);
+      }
+    };
+    loadMockDiamonds();
+  }, []);
+
+  useEffect(() => {
+    const filterMockDiamonds = () => {
+      let filtered = [...allMockDiamonds];
+
+      if (filters.shape.length > 0) {
+        filtered = filtered.filter(diamond =>
+          filters.shape.includes(diamond.shape)
+        );
+      }
+
+      if (diamondType) {
+        filtered = filtered.filter(diamond =>
+          diamond.diamondType === diamondType
+        );
+      }
+
+      filtered = filtered.filter(diamond =>
+        diamond.carat >= filters.caratMin && diamond.carat <= filters.caratMax
+      );
+
+      filtered = filtered.filter(diamond =>
+        diamond.price >= filters.priceMin && diamond.price <= filters.priceMax
+      );
+
+      if (cutRange.min > 0 || cutRange.max < CUT_OPTIONS.length - 1) {
+        const selectedCuts = CUT_OPTIONS.slice(cutRange.min, cutRange.max + 1);
+        filtered = filtered.filter(diamond =>
+          diamond.cut && selectedCuts.includes(diamond.cut)
+        );
+      }
+
+      if (colorRange.min > 0 || colorRange.max < COLOR_OPTIONS.length - 1) {
+        const selectedColors = COLOR_OPTIONS.slice(colorRange.min, colorRange.max + 1);
+        filtered = filtered.filter(diamond =>
+          diamond.color && selectedColors.includes(diamond.color)
+        );
+      }
+
+      if (clarityRange.min > 0 || clarityRange.max < CLARITY_OPTIONS.length - 1) {
+        const selectedClarities = CLARITY_OPTIONS.slice(clarityRange.min, clarityRange.max + 1);
+        filtered = filtered.filter(diamond =>
+          diamond.clarity && selectedClarities.includes(diamond.clarity)
+        );
+      }
+
+      if (sortBy.field === 'price') {
+        filtered.sort((a, b) => sortBy.order === 'asc' ? a.price - b.price : b.price - a.price);
+      } else if (sortBy.field === 'carat') {
+        filtered.sort((a, b) => sortBy.order === 'asc' ? a.carat - b.carat : b.carat - a.carat);
+      }
+
+      setMockDiamonds(filtered);
+    };
+
+    filterMockDiamonds();
+  }, [filters, diamondType, cutRange, colorRange, clarityRange, sortBy, allMockDiamonds]);
 
   useEffect(() => {
     // Check if mobile
@@ -227,7 +301,7 @@ export function StoneSelector({ shop }: { shop: string }) {
       </div>
 
       <ResultsControlBar
-        totalResults={stones.length}
+        totalResults={stones.length + mockDiamonds.length}
         compareCount={0}
         perPage={perPage}
         onPerPageChange={setPerPage}
@@ -237,9 +311,9 @@ export function StoneSelector({ shop }: { shop: string }) {
         onViewModeChange={setViewMode}
       />
 
-      {stones.length === 0 ? (
+      {stones.length === 0 && mockDiamonds.length === 0 ? (
         <div className="empty-state">
-          <p>No stones found with your current filters.</p>
+          <p>No diamonds found with your current filters.</p>
           <button
             onClick={handleReset}
             className="clear-filters-button"
@@ -247,10 +321,38 @@ export function StoneSelector({ shop }: { shop: string }) {
             Clear Filters
           </button>
         </div>
-      ) : isMobile || viewMode === "list" ? (
-        <StoneTable stones={stones} sortBy={sortBy} onSortChange={setSortBy} />
       ) : (
-        <StoneCardList stones={stones} />
+        <>
+          {mockDiamonds.length > 0 && (
+            <div className="results-section">
+              <h3 className="section-title">Available Diamonds ({mockDiamonds.length})</h3>
+              <div className="diamonds-grid">
+                {mockDiamonds.map((diamond) => (
+                  <DiamondCard
+                    key={diamond.id}
+                    diamond={diamond}
+                    onSelect={(d) => {
+                      console.log('Selected diamond:', d);
+                      selectStone(d);
+                      alert(`Selected: ${d.carat}ct ${d.shape} diamond - $${d.price.toLocaleString()}`);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {stones.length > 0 && (
+            <div className="results-section">
+              <h3 className="section-title">From Inventory ({stones.length})</h3>
+              {isMobile || viewMode === "list" ? (
+                <StoneTable stones={stones} sortBy={sortBy} onSortChange={setSortBy} />
+              ) : (
+                <StoneCardList stones={stones} />
+              )}
+            </div>
+          )}
+        </>
       )}
 
       <style>{`
@@ -322,6 +424,41 @@ export function StoneSelector({ shop }: { shop: string }) {
 
         .clear-filters-button:hover {
           background: #1f5199;
+        }
+
+        .results-section {
+          margin-bottom: 40px;
+        }
+
+        .results-section:last-child {
+          margin-bottom: 0;
+        }
+
+        .section-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0 0 20px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid #7c2d5e;
+        }
+
+        .diamonds-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+          .diamonds-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          }
+        }
+
+        @media (max-width: 768px) {
+          .diamonds-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
