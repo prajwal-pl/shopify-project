@@ -13,6 +13,8 @@ import type {
   Stone,
   PriceBreakdown,
   SideStonesConfig,
+  EngravingConfig,
+  GiftMessageConfig,
   RingProduct,
 } from "~/types/builder";
 import type { MetalType, RingSize } from "~/utils/constants";
@@ -38,10 +40,13 @@ export function BuilderProvider({
   const [selectedStone, setSelectedStone] = useState<Stone | undefined>();
   const [ringSize, setRingSize] = useState<RingSize | undefined>();
   const [sideStones, setSideStones] = useState<SideStonesConfig | undefined>();
+  const [engraving, setEngraving] = useState<EngravingConfig | undefined>();
+  const [giftMessage, setGiftMessage] = useState<GiftMessageConfig | undefined>();
   const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown>({
     settingPrice: 0,
     stonePrice: 0,
     sideStonesPrice: 0,
+    engravingPrice: 0,
     subtotal: 0,
     markup: 0,
     markupPercent: 0,
@@ -68,6 +73,8 @@ export function BuilderProvider({
           setSelectedStone(state.selectedStone);
           setRingSize(state.ringSize);
           setSideStones(state.sideStones);
+          setEngraving(state.engraving);
+          setGiftMessage(state.giftMessage);
         }
       } catch (error) {
         console.error("Error loading builder state:", error);
@@ -85,6 +92,8 @@ export function BuilderProvider({
       selectedStone,
       ringSize,
       sideStones,
+      engraving,
+      giftMessage,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [
@@ -95,17 +104,20 @@ export function BuilderProvider({
     selectedStone,
     ringSize,
     sideStones,
+    engraving,
+    giftMessage,
   ]);
 
   // Calculate price whenever selections change
   useEffect(() => {
     calculatePrice();
-  }, [selectedSetting, selectedMetalType, selectedStone, sideStones]);
+  }, [selectedSetting, selectedMetalType, selectedStone, sideStones, engraving]);
 
   const calculatePrice = () => {
     let settingPrice = 0;
     let stonePrice = 0;
     let sideStonesPrice = 0;
+    let engravingPrice = 0;
 
     // Get setting price for selected metal type
     if (selectedSetting && selectedMetalType) {
@@ -122,7 +134,12 @@ export function BuilderProvider({
       sideStonesPrice = sideStones.price || 0;
     }
 
-    const subtotal = settingPrice + stonePrice + sideStonesPrice;
+    // Calculate engraving price
+    if (engraving?.enabled) {
+      engravingPrice = engraving.price || 0;
+    }
+
+    const subtotal = settingPrice + stonePrice + sideStonesPrice + engravingPrice;
 
     // TODO: Fetch markup percentage from app settings
     const markupPercent = 0; // Will be fetched from API in real implementation
@@ -133,6 +150,7 @@ export function BuilderProvider({
       settingPrice,
       stonePrice,
       sideStonesPrice,
+      engravingPrice,
       subtotal,
       markup,
       markupPercent,
@@ -165,6 +183,14 @@ export function BuilderProvider({
     setSideStones(config);
   };
 
+  const updateEngraving = (config: EngravingConfig) => {
+    setEngraving(config);
+  };
+
+  const updateGiftMessage = (config: GiftMessageConfig) => {
+    setGiftMessage(config);
+  };
+
   const goToStep = (step: BuilderStep) => {
     setCurrentStep(step);
   };
@@ -176,10 +202,13 @@ export function BuilderProvider({
     setSelectedStone(undefined);
     setRingSize(undefined);
     setSideStones(undefined);
+    setEngraving(undefined);
+    setGiftMessage(undefined);
     setPriceBreakdown({
       settingPrice: 0,
       stonePrice: 0,
       sideStonesPrice: 0,
+      engravingPrice: 0,
       subtotal: 0,
       markup: 0,
       markupPercent: 0,
@@ -214,6 +243,8 @@ export function BuilderProvider({
     selectedStone,
     ringSize,
     sideStones,
+    engraving,
+    giftMessage,
     priceBreakdown,
     showSettingDetail,
     showStoneDetail,
@@ -224,6 +255,8 @@ export function BuilderProvider({
     updateMetalType,
     updateRingSize,
     updateSideStones,
+    updateEngraving,
+    updateGiftMessage,
     goToStep,
     resetBuilder,
     calculatePrice,

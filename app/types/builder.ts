@@ -351,6 +351,25 @@ export interface SideStonesConfig {
   price: number;
 }
 
+/**
+ * Engraving configuration
+ */
+export interface EngravingConfig {
+  enabled: boolean;
+  text?: string;
+  font?: 'script' | 'block' | 'italic';
+  position?: 'inside' | 'outside';
+  price: number;
+}
+
+/**
+ * Gift message configuration
+ */
+export interface GiftMessageConfig {
+  enabled: boolean;
+  message?: string;
+}
+
 // ============================================================================
 // ANALYTICS TYPES
 // ============================================================================
@@ -423,6 +442,7 @@ export interface PriceBreakdown {
   settingPrice: number;
   stonePrice: number;
   sideStonesPrice: number;
+  engravingPrice: number;
   subtotal: number;
   markup: number;
   markupPercent: number;
@@ -462,6 +482,8 @@ export interface BuilderState {
   selectedStone?: Stone;
   ringSize?: RingSize;
   sideStones?: SideStonesConfig;
+  engraving?: EngravingConfig;
+  giftMessage?: GiftMessageConfig;
   priceBreakdown: PriceBreakdown;
   viewDetailSetting?: Setting | RingProduct;
   viewDetailStone?: Stone;
@@ -494,6 +516,8 @@ export interface BuilderActions {
   updateMetalType: (metalType: MetalType) => void;
   updateRingSize: (size: RingSize) => void;
   updateSideStones: (config: SideStonesConfig) => void;
+  updateEngraving: (config: EngravingConfig) => void;
+  updateGiftMessage: (config: GiftMessageConfig) => void;
   goToStep: (step: BuilderStep) => void;
   resetBuilder: () => void;
   showSettingDetailView: (setting: Setting | RingProduct) => void;
