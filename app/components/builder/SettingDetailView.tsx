@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import type { Setting, RingProduct } from "~/types/builder";
 import { useBuilder } from "./BuilderProvider";
+import type { MetalType } from "~/utils/constants";
 
 interface SettingDetailViewProps {
   setting: Setting | RingProduct;
 }
 
 export function SettingDetailView({ setting }: SettingDetailViewProps) {
-  const { hideDetailViews, goToStep } = useBuilder();
+  const { hideDetailViews, goToStep, selectSetting } = useBuilder();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedMetalType, setSelectedMetalType] = useState<string>("14k_white_gold");
 
   const isRingProduct = "url" in setting;
   const images = isRingProduct ? setting.thumbnails : setting.images;
@@ -18,8 +20,41 @@ export function SettingDetailView({ setting }: SettingDetailViewProps) {
   const price = isRingProduct ? setting.price : setting.startingPrice;
 
   const handleAddYourDiamond = () => {
+    const metalTypeMap: Record<string, string> = {
+      "14K White Gold": "14k_white_gold",
+      "14K Yellow Gold": "14k_yellow_gold",
+      "14K Rose Gold": "14k_rose_gold",
+      "18K White Gold": "18k_white_gold",
+      "Platinum": "platinum",
+    };
+    const metalType = metalTypeMap[selectedMetalType] || "14k_white_gold";
+
+    if (isRingProduct) {
+      const convertedSetting: Setting = {
+        id: setting.sku || setting.id,
+        productId: setting.id,
+        name: setting.title,
+        description: setting.description || "",
+        images: setting.thumbnails || [],
+        sku: setting.sku,
+        metalTypes: [metalType as any],
+        basePrices: {
+          "14k_white_gold": setting.price || 0,
+          "14k_yellow_gold": setting.price || 0,
+          "14k_rose_gold": setting.price || 0,
+          "18k_white_gold": setting.price || 0,
+          "18k_yellow_gold": setting.price || 0,
+          "18k_rose_gold": setting.price || 0,
+          "platinum": setting.price || 0,
+        },
+        startingPrice: setting.price || 0,
+        available: true,
+      };
+      selectSetting(convertedSetting, metalType as any);
+    } else {
+      selectSetting(setting as Setting, metalType as any);
+    }
     hideDetailViews();
-    goToStep(2);
   };
 
   const handleBack = () => {
@@ -81,7 +116,11 @@ export function SettingDetailView({ setting }: SettingDetailViewProps) {
           <div className="detail-options">
             <div className="option-row">
               <label>Metal Type</label>
-              <select className="option-select">
+              <select
+                className="option-select"
+                value={selectedMetalType}
+                onChange={(e) => setSelectedMetalType(e.target.value)}
+              >
                 <option>14K White Gold</option>
                 <option>14K Yellow Gold</option>
                 <option>14K Rose Gold</option>

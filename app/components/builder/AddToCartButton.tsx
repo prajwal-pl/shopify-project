@@ -25,6 +25,7 @@ export function AddToCartButton({
     ringSize,
     sideStones,
     priceBreakdown,
+    trackEvent,
   } = useBuilder();
 
   const [isAdding, setIsAdding] = useState(false);
@@ -71,6 +72,16 @@ export function AddToCartButton({
 
       console.log("🛒 Cart API Response:", result);
       console.log("📦 Cart Data:", result.cartData);
+
+      await trackEvent('add_to_cart', {
+        configurationId: result.configurationId,
+        settingId: selectedSetting.productId,
+        stoneId: selectedStone.productId,
+        metalType: selectedMetalType,
+        ringSize,
+        totalPrice: priceBreakdown.total,
+        success: true,
+      });
 
       // Check if we're in admin preview mode (no /cart/add.js available)
       const isAdminPreview = window.location.pathname.includes(
@@ -171,6 +182,18 @@ export function AddToCartButton({
       const errorMessage =
         err.message || "An error occurred. Please try again.";
       setError(errorMessage);
+
+      await trackEvent('add_to_cart', {
+        configurationId: null,
+        settingId: selectedSetting?.productId,
+        stoneId: selectedStone?.productId,
+        metalType: selectedMetalType,
+        ringSize,
+        totalPrice: priceBreakdown.total,
+        success: false,
+        error: errorMessage,
+      });
+
       if (onError) {
         onError(errorMessage);
       }

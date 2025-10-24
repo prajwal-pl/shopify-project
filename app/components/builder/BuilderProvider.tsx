@@ -19,11 +19,18 @@ import type {
 } from "~/types/builder";
 import type { MetalType, RingSize } from "~/utils/constants";
 
-type BuilderContextType = BuilderState & BuilderActions;
+type BuilderContextType = BuilderState & BuilderActions & {
+  sessionId: string;
+  trackEvent: (eventType: string, data: any) => Promise<void>;
+};
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
 
 const STORAGE_KEY = "ring-builder-state";
+
+function generateSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
 
 export function BuilderProvider({
   children,
@@ -32,6 +39,8 @@ export function BuilderProvider({
   children: React.ReactNode;
   shop: string;
 }) {
+  const [sessionId] = useState(() => generateSessionId());
+  const [sessionStartTime] = useState(Date.now());
   const [currentStep, setCurrentStep] = useState<BuilderStep>(1);
   const [selectedSetting, setSelectedSetting] = useState<Setting | undefined>();
   const [selectedMetalType, setSelectedMetalType] = useState<
@@ -163,36 +172,101 @@ export function BuilderProvider({
     setSelectedMetalType(metalType);
     // Auto-advance to stone selection
     setCurrentStep(2);
+
+    trackEvent('product_view', {
+      productId: setting.id,
+      productType: 'setting',
+      metalType,
+      price: setting.basePrices[metalType],
+    });
+
+    trackEvent('step_change', {
+      fromStep: 1,
+      toStep: 2,
+      settingSelected: true,
+    });
   };
 
   const selectStone = (stone: Stone) => {
     setSelectedStone(stone);
     // Auto-advance to customization
     setCurrentStep(3);
+
+    trackEvent('product_view', {
+      productId: stone.id,
+      productType: 'stone',
+      carat: stone.carat,
+      shape: stone.shape,
+      color: stone.color,
+      clarity: stone.clarity,
+      price: stone.price,
+    });
+
+    trackEvent('step_change', {
+      fromStep: 2,
+      toStep: 3,
+      stoneSelected: true,
+    });
   };
 
   const updateMetalType = (metalType: MetalType) => {
     setSelectedMetalType(metalType);
+
+    trackEvent('configuration_update', {
+      field: 'metalType',
+      value: metalType,
+      step: currentStep,
+    });
   };
 
   const updateRingSize = (size: RingSize) => {
     setRingSize(size);
+
+    trackEvent('configuration_update', {
+      field: 'ringSize',
+      value: size,
+      step: currentStep,
+    });
   };
 
   const updateSideStones = (config: SideStonesConfig) => {
     setSideStones(config);
+
+    trackEvent('configuration_update', {
+      field: 'sideStones',
+      value: config,
+      step: currentStep,
+    });
   };
 
   const updateEngraving = (config: EngravingConfig) => {
     setEngraving(config);
+
+    trackEvent('configuration_update', {
+      field: 'engraving',
+      value: config,
+      step: currentStep,
+    });
   };
 
   const updateGiftMessage = (config: GiftMessageConfig) => {
     setGiftMessage(config);
+
+    trackEvent('configuration_update', {
+      field: 'giftMessage',
+      value: config,
+      step: currentStep,
+    });
   };
 
   const goToStep = (step: BuilderStep) => {
+    const previousStep = currentStep;
     setCurrentStep(step);
+
+    trackEvent('step_change', {
+      fromStep: previousStep,
+      toStep: step,
+    });
   };
 
   const resetBuilder = () => {
@@ -236,7 +310,34 @@ export function BuilderProvider({
     setShowStoneDetail(false);
   };
 
+  const trackEvent = async (eventType: string, data: any) => {
+    try {
+      await fetch('/api/builder/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          shop,
+          eventType,
+          timestamp: new Date().toISOString(),
+          data,
+        }),
+      });
+    } catch (error) {
+      console.error('Analytics tracking failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    trackEvent('session_start', {
+      timestamp: new Date(sessionStartTime).toISOString(),
+      userAgent: navigator.userAgent,
+    });
+  }, []);
+
   const value: BuilderContextType = {
+    sessionId,
+    trackEvent,
     currentStep,
     selectedSetting,
     selectedMetalType,

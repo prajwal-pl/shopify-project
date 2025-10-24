@@ -10,7 +10,8 @@ import { useBuilder } from "./BuilderProvider";
 const STEPS = [
   { number: 1, label: "Choose Your", sublabel: "Setting", icon: "💍" },
   { number: 2, label: "Choose Your", sublabel: "Diamond", icon: "💎" },
-  { number: 3, label: "Review", sublabel: "Complete Ring", icon: "✓" },
+  { number: 3, label: "Customize", sublabel: "Your Ring", icon: "⚙️" },
+  { number: 4, label: "Review", sublabel: "Complete Ring", icon: "✓" },
 ] as const;
 
 export function StepNavigation() {
@@ -19,8 +20,9 @@ export function StepNavigation() {
 
   const canNavigateToStep = (step: number) => {
     if (step === 1) return true;
-    if (step === 2) return true;
-    if (step === 3) return true;
+    if (step === 2) return !!selectedSetting;
+    if (step === 3) return !!selectedSetting && !!selectedStone;
+    if (step === 4) return !!selectedSetting && !!selectedStone && !!ringSize;
     return false;
   };
 
@@ -28,8 +30,7 @@ export function StepNavigation() {
     <div className="step-navigation">
       {STEPS.map((step) => {
         const isActive = currentStep === step.number;
-        const isCompleted = (step.number === 1 && currentStep > 1) ||
-          (step.number === 2 && currentStep === 3);
+        const isCompleted = currentStep > step.number;
         const canNavigate = canNavigateToStep(step.number);
 
         return (

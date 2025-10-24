@@ -45,7 +45,8 @@ function BuilderContent({ shop }: { shop: string }) {
           {currentStep === 2 && showStoneDetail && viewDetailStone && (
             <DiamondDetailView stone={viewDetailStone} />
           )}
-          {currentStep === 3 && <CompleteRingReview />}
+          {currentStep === 3 && <Customization shop={shop} />}
+          {currentStep === 4 && <Review shop={shop} />}
         </div>
 
         {(currentStep === 1 || currentStep === 2) && (
