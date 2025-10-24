@@ -221,6 +221,7 @@ export async function calculateTotalPrice(
     settingPrice,
     stonePrice,
     sideStonesPrice,
+    engravingPrice: 0,
     subtotal,
     markup: markupAmount,
     markupPercent: settings.markupPercent,

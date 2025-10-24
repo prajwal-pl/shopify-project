@@ -201,6 +201,7 @@ export async function getConfigurationSummary(
       settingPrice: configuration.settingPrice,
       stonePrice: configuration.stonePrice,
       sideStonesPrice: configuration.sideStonesPrice || 0,
+      engravingPrice: 0,
       subtotal:
         configuration.settingPrice +
         configuration.stonePrice +
