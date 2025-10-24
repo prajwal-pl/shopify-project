@@ -64,8 +64,12 @@ export function StoneSelector({ shop }: { shop: string }) {
       try {
         const response = await fetch('/data/mock-diamonds.json');
         const data: Stone[] = await response.json();
-        setAllMockDiamonds(data);
-        setMockDiamonds(data);
+        const markedData = data.map(stone => ({
+          ...stone,
+          productId: `scraped:${stone.productId}`,
+        }));
+        setAllMockDiamonds(markedData);
+        setMockDiamonds(markedData);
       } catch (err) {
         console.error('Failed to load mock diamonds:', err);
       }

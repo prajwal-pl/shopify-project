@@ -18,10 +18,14 @@ import type {
   RingProduct,
 } from "~/types/builder";
 import type { MetalType, RingSize } from "~/utils/constants";
+import { useToast } from "../shared/useToast";
+import type { ToastProps } from "../shared/Toast";
 
 type BuilderContextType = BuilderState & BuilderActions & {
   sessionId: string;
   trackEvent: (eventType: string, data: any) => Promise<void>;
+  showToast: (toast: Omit<ToastProps, "onClose">) => void;
+  toasts: Array<ToastProps & { id: string }>;
 };
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
@@ -39,6 +43,7 @@ export function BuilderProvider({
   children: React.ReactNode;
   shop: string;
 }) {
+  const { toasts, showToast, removeToast } = useToast();
   const [sessionId] = useState(() => generateSessionId());
   const [sessionStartTime] = useState(Date.now());
   const [currentStep, setCurrentStep] = useState<BuilderStep>(1);
@@ -338,6 +343,8 @@ export function BuilderProvider({
   const value: BuilderContextType = {
     sessionId,
     trackEvent,
+    showToast,
+    toasts,
     currentStep,
     selectedSetting,
     selectedMetalType,

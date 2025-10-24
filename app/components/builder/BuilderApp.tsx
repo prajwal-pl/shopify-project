@@ -15,6 +15,7 @@ import { Review } from "./steps/Review";
 import { SettingDetailView } from "./SettingDetailView";
 import { DiamondDetailView } from "./DiamondDetailView";
 import { CompleteRingReview } from "./CompleteRingReview";
+import { Toast } from "../shared/Toast";
 
 interface BuilderAppProps {
   shop: string;
@@ -29,10 +30,13 @@ export function BuilderApp({ shop }: BuilderAppProps) {
 }
 
 function BuilderContent({ shop }: { shop: string }) {
-  const { currentStep, showSettingDetail, showStoneDetail, viewDetailSetting, viewDetailStone } = useBuilder();
+  const { currentStep, showSettingDetail, showStoneDetail, viewDetailSetting, viewDetailStone, toasts } = useBuilder();
 
   return (
     <div className="ring-builder">
+      {toasts.map((toast) => (
+        <Toast key={toast.id} {...toast} />
+      ))}
       <StepNavigation />
 
       <div className="builder-container">

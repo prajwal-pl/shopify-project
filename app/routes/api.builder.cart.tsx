@@ -71,36 +71,79 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Validate formats
+    // Check if these are scraped products (special format: scraped:SKU)
+    const isScrapedSetting = settingId.startsWith("scraped:");
+    const isScrapedStone = stoneId.startsWith("scraped:");
+
+    // Validate formats (skip Shopify GID validation for scraped products)
     try {
-      validateShopifyGID(settingId, "Product");
-      validateShopifyGID(stoneId, "Product");
+      if (!isScrapedSetting) {
+        validateShopifyGID(settingId, "Product");
+      }
+      if (!isScrapedStone) {
+        validateShopifyGID(stoneId, "Product");
+      }
       validateMetalType(metalType);
       validateRingSize(ringSize);
     } catch (error: any) {
       return Response.json({ error: error.message }, { status: 400 });
     }
 
-    // Fetch setting and stone details
-    const [setting, stone] = await Promise.all([
-      getSettingByProductId(settingId, shop),
-      getStoneByProductId(stoneId, shop),
-    ]);
+    // Fetch setting and stone details (or create mock data for scraped products)
+    let setting, stone;
 
-    if (!setting) {
-      return Response.json({ error: "Setting not found" }, { status: 404 });
+    if (isScrapedSetting) {
+      // Create mock setting for scraped product
+      const sku = settingId.replace("scraped:", "");
+      setting = {
+        id: sku,
+        productId: settingId,
+        name: `Ring Setting ${sku}`,
+        sku: sku,
+        basePrices: {
+          "14k_white_gold": 0,
+          "14k_yellow_gold": 0,
+          "14k_rose_gold": 0,
+          "18k_white_gold": 0,
+          "18k_yellow_gold": 0,
+          "18k_rose_gold": 0,
+          "platinum": 0,
+        },
+      };
+    } else {
+      setting = await getSettingByProductId(settingId, shop);
+      if (!setting) {
+        return Response.json({ error: "Setting not found" }, { status: 404 });
+      }
     }
 
-    if (!stone) {
-      return Response.json({ error: "Stone not found" }, { status: 404 });
-    }
-
-    // Check availability
-    if (!stone.available) {
-      return Response.json(
-        { error: "Stone is no longer available" },
-        { status: 400 },
-      );
+    if (isScrapedStone) {
+      // Create mock stone for scraped product
+      const sku = stoneId.replace("scraped:", "");
+      stone = {
+        id: sku,
+        productId: stoneId,
+        price: 0,
+        available: true,
+        carat: 0,
+        shape: "round",
+        color: "N/A",
+        clarity: "N/A",
+        certificate: "none",
+        certificateNumber: "",
+      };
+    } else {
+      stone = await getStoneByProductId(stoneId, shop);
+      if (!stone) {
+        return Response.json({ error: "Stone not found" }, { status: 404 });
+      }
+      // Check availability
+      if (!stone.available) {
+        return Response.json(
+          { error: "Stone is no longer available" },
+          { status: 400 },
+        );
+      }
     }
 
     console.log("=================================================");
@@ -227,6 +270,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({
       success: true,
       configurationId: configuration.configurationId,
+      isScrapedProduct: isScrapedSetting || isScrapedStone,
       cartData: {
         id: settingId, // Use setting product ID
         quantity: 1,

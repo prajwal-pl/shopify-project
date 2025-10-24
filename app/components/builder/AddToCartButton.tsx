@@ -26,6 +26,7 @@ export function AddToCartButton({
     sideStones,
     priceBreakdown,
     trackEvent,
+    showToast,
   } = useBuilder();
 
   const [isAdding, setIsAdding] = useState(false);
@@ -83,26 +84,29 @@ export function AddToCartButton({
         success: true,
       });
 
-      // Check if we're in admin preview mode (no /cart/add.js available)
-      const isAdminPreview = window.location.pathname.includes(
-        "/app/builder/preview",
-      );
+      // Check if we're in admin context (check hostname and pathname)
+      const isAdminContext = window.location.hostname.includes("admin.shopify.com") ||
+        window.location.pathname.includes("/app/builder") ||
+        window.parent !== window;
 
-      if (isAdminPreview) {
-        // In admin preview - just show success message
-        console.log(
-          "✅ Configuration saved! (Admin preview mode - no actual cart)",
-        );
+      // Check if this is a scraped product (can't add to Shopify cart)
+      const isScrapedProduct = result.isScrapedProduct;
+
+      // In admin context OR scraped product - just save config, don't add to cart
+      if (isAdminContext || isScrapedProduct) {
+        console.log("✅ Configuration saved!");
         console.log("Configuration ID:", result.configurationId);
-        console.log("Check Prisma Studio to see the saved configuration!");
+        console.log("Context:", { isAdminContext, isScrapedProduct });
 
-        alert(
-          `✅ Success! Configuration saved!\n\n` +
-            `Configuration ID: ${result.configurationId}\n\n` +
-            `In a real storefront, this would add to cart.\n` +
-            `Check Prisma Studio to see the saved data!\n\n` +
-            `(This is preview mode - cart API not available)`,
-        );
+        const message = isScrapedProduct
+          ? `Configuration Saved! ID: ${result.configurationId}. This is a sample product - please contact us to purchase.`
+          : `Configuration saved successfully! ID: ${result.configurationId}`;
+
+        showToast({
+          message,
+          type: "success",
+          duration: 6000,
+        });
 
         if (onSuccess) {
           onSuccess();
@@ -126,15 +130,12 @@ export function AddToCartButton({
           // Check if response is HTML (404 page) instead of JSON
           const contentType = cartResponse.headers.get("content-type");
           if (contentType?.includes("text/html")) {
-            // This is the admin preview - cart API not available
             console.log("⚠️ Cart API returned HTML (preview mode detected)");
-            alert(
-              `✅ Configuration Saved!\n\n` +
-                `Configuration ID: ${result.configurationId}\n\n` +
-                `The configuration was saved to the database successfully!\n\n` +
-                `Note: You're in preview mode. On the real storefront, this would add to the Shopify cart.\n\n` +
-                `Check Prisma Studio to see the saved configuration!`,
-            );
+            showToast({
+              message: `Configuration saved successfully! ID: ${result.configurationId}. You're in preview mode - on real storefront, this would add to cart.`,
+              type: "info",
+              duration: 6000,
+            });
             if (onSuccess) {
               onSuccess();
             }
@@ -153,23 +154,28 @@ export function AddToCartButton({
         }
 
         // Success!
+        showToast({
+          message: "Added to cart successfully!",
+          type: "success",
+          duration: 3000,
+        });
         if (onSuccess) {
           onSuccess();
         } else {
-          // Redirect to cart
-          window.location.href = result.redirectUrl || "/cart";
+          setTimeout(() => {
+            window.location.href = result.redirectUrl || "/cart";
+          }, 1000);
         }
       } catch (cartError: any) {
         console.error("Cart API error:", cartError);
 
         // If it's a JSON parse error, we're likely in preview mode
         if (cartError.message?.includes("Unexpected token")) {
-          alert(
-            `✅ Configuration Saved!\n\n` +
-              `Configuration ID: ${result.configurationId}\n\n` +
-              `Your ring configuration was successfully saved to the database!\n\n` +
-              `Note: Cart integration requires a real Shopify storefront. Check Prisma Studio to see your saved data.`,
-          );
+          showToast({
+            message: `Configuration saved successfully! ID: ${result.configurationId}. Cart integration requires a real storefront.`,
+            type: "info",
+            duration: 6000,
+          });
           if (onSuccess) {
             onSuccess();
           }

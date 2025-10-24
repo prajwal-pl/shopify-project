@@ -32,7 +32,7 @@ export function SettingDetailView({ setting }: SettingDetailViewProps) {
     if (isRingProduct) {
       const convertedSetting: Setting = {
         id: setting.sku || setting.id,
-        productId: setting.id,
+        productId: `scraped:${setting.sku || setting.id}`,
         name: setting.title,
         description: setting.description || "",
         images: setting.thumbnails || [],
