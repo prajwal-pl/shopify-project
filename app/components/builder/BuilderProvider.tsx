@@ -26,6 +26,11 @@ type BuilderContextType = BuilderState & BuilderActions & {
   trackEvent: (eventType: string, data: any) => Promise<void>;
   showToast: (toast: Omit<ToastProps, "onClose">) => void;
   toasts: Array<ToastProps & { id: string }>;
+  showCart: boolean;
+  cartItemCount: number;
+  openCart: () => void;
+  closeCart: () => void;
+  refreshCartCount: () => Promise<void>;
 };
 
 const BuilderContext = createContext<BuilderContextType | null>(null);
@@ -72,6 +77,8 @@ export function BuilderProvider({
     Setting | RingProduct | undefined
   >();
   const [viewDetailStone, setViewDetailStone] = useState<Stone | undefined>();
+  const [showCart, setShowCart] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   // Load state from localStorage on mount
   useEffect(() => {
@@ -315,6 +322,25 @@ export function BuilderProvider({
     setShowStoneDetail(false);
   };
 
+  const openCart = () => {
+    setShowCart(true);
+    refreshCartCount();
+  };
+
+  const closeCart = () => {
+    setShowCart(false);
+  };
+
+  const refreshCartCount = async () => {
+    try {
+      const response = await fetch(`/api/builder/cart/get?shop=${shop}`);
+      const data = await response.json();
+      setCartItemCount(data.item_count || 0);
+    } catch (error) {
+      console.error('Failed to fetch cart count:', error);
+    }
+  };
+
   const trackEvent = async (eventType: string, data: any) => {
     try {
       await fetch('/api/builder/analytics/track', {
@@ -338,6 +364,7 @@ export function BuilderProvider({
       timestamp: new Date(sessionStartTime).toISOString(),
       userAgent: navigator.userAgent,
     });
+    refreshCartCount();
   }, []);
 
   const value: BuilderContextType = {
@@ -345,6 +372,11 @@ export function BuilderProvider({
     trackEvent,
     showToast,
     toasts,
+    showCart,
+    cartItemCount,
+    openCart,
+    closeCart,
+    refreshCartCount,
     currentStep,
     selectedSetting,
     selectedMetalType,

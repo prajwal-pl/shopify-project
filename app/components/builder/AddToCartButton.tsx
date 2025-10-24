@@ -27,6 +27,7 @@ export function AddToCartButton({
     priceBreakdown,
     trackEvent,
     showToast,
+    refreshCartCount,
   } = useBuilder();
 
   const [isAdding, setIsAdding] = useState(false);
@@ -159,6 +160,7 @@ export function AddToCartButton({
           type: "success",
           duration: 3000,
         });
+        await refreshCartCount();
         if (onSuccess) {
           onSuccess();
         } else {

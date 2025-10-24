@@ -16,6 +16,8 @@ import { SettingDetailView } from "./SettingDetailView";
 import { DiamondDetailView } from "./DiamondDetailView";
 import { CompleteRingReview } from "./CompleteRingReview";
 import { Toast } from "../shared/Toast";
+import { CartButton } from "./CartButton";
+import { CartView } from "./CartView";
 
 interface BuilderAppProps {
   shop: string;
@@ -30,14 +32,19 @@ export function BuilderApp({ shop }: BuilderAppProps) {
 }
 
 function BuilderContent({ shop }: { shop: string }) {
-  const { currentStep, showSettingDetail, showStoneDetail, viewDetailSetting, viewDetailStone, toasts } = useBuilder();
+  const { currentStep, showSettingDetail, showStoneDetail, viewDetailSetting, viewDetailStone, toasts, showCart, closeCart } = useBuilder();
 
   return (
     <div className="ring-builder">
       {toasts.map((toast) => (
         <Toast key={toast.id} {...toast} />
       ))}
-      <StepNavigation />
+      <div className="builder-header">
+        <StepNavigation />
+        <div className="header-actions">
+          <CartButton />
+        </div>
+      </div>
 
       <div className="builder-container">
         <div className="builder-main">
@@ -60,12 +67,25 @@ function BuilderContent({ shop }: { shop: string }) {
         )}
       </div>
 
+      {showCart && <CartView shop={shop} onClose={closeCart} />}
+
       <style>{`
         .ring-builder {
           max-width: 1400px;
           margin: 0 auto;
           padding: 20px;
           background: #f9f9f9;
+        }
+
+        .builder-header {
+          position: relative;
+        }
+
+        .header-actions {
+          position: absolute;
+          top: 20px;
+          right: 0;
+          z-index: 10;
         }
 
         .builder-container {
