@@ -5,13 +5,16 @@
  */
 
 import React from "react";
+import { Circle, Gem, Settings, Check } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import { useBuilder } from "./BuilderProvider";
+import { PREFERS_REDUCED_MOTION } from "~/utils/accessibility";
 
 const STEPS = [
-  { number: 1, label: "Choose Your", sublabel: "Setting", icon: "💍" },
-  { number: 2, label: "Choose Your", sublabel: "Diamond", icon: "💎" },
-  { number: 3, label: "Customize", sublabel: "Your Ring", icon: "⚙️" },
-  { number: 4, label: "Review", sublabel: "Complete Ring", icon: "✓" },
+  { number: 1, label: "Choose Your", sublabel: "Setting", icon: Circle },
+  { number: 2, label: "Choose Your", sublabel: "Diamond", icon: Gem },
+  { number: 3, label: "Customize", sublabel: "Your Ring", icon: Settings },
+  { number: 4, label: "Review", sublabel: "Complete Ring", icon: Check },
 ] as const;
 
 export function StepNavigation() {
@@ -27,7 +30,7 @@ export function StepNavigation() {
   };
 
   return (
-    <div className="step-navigation">
+    <nav className="step-navigation" aria-label="Ring builder progress" role="navigation">
       {STEPS.map((step) => {
         const isActive = currentStep === step.number;
         const isCompleted = currentStep > step.number;
@@ -38,12 +41,18 @@ export function StepNavigation() {
             key={step.number}
             className={`chevron-step ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""} ${canNavigate ? "clickable" : ""}`}
             onClick={() => canNavigate && goToStep(step.number as any)}
+            role={canNavigate ? "button" : "presentation"}
+            aria-label={`Step ${step.number}: ${step.label} ${step.sublabel}${isActive ? " (current step)" : ""}${isCompleted ? " (completed)" : ""}`}
+            aria-current={isActive ? "step" : undefined}
+            tabIndex={canNavigate ? 0 : -1}
           >
             <div className="chevron-content">
               <div className="chevron-label">{step.label}</div>
               <div className="chevron-sublabel">{step.sublabel}</div>
             </div>
-            <div className="chevron-icon">{step.icon}</div>
+            <div className="chevron-icon" aria-hidden="true">
+              <Icon icon={step.icon} size="lg" />
+            </div>
           </div>
         );
       })}
@@ -71,6 +80,7 @@ export function StepNavigation() {
           clip-path: polygon(0 0, calc(100% - 25px) 0, 100% 50%, calc(100% - 25px) 100%, 0 100%, 25px 50%);
           margin-left: -15px;
           min-height: 80px;
+          will-change: transform, background;
         }
 
         .chevron-step:first-child {
@@ -149,10 +159,31 @@ export function StepNavigation() {
         }
 
         .chevron-icon {
-          font-size: 28px;
           margin-left: 16px;
           z-index: 1;
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.3s ease;
+          will-change: transform, opacity;
+        }
+
+        .chevron-step:hover .chevron-icon {
+          transform: scale(1.1);
+        }
+
+        .chevron-step.active .chevron-icon {
+          animation: iconPulse 2s infinite;
+        }
+
+        @keyframes iconPulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
         }
 
         @media (max-width: 968px) {
@@ -178,7 +209,26 @@ export function StepNavigation() {
             clip-path: polygon(0 0, 50% 15px, 100% 0, 100% 100%, 0 100%);
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .chevron-step,
+          .chevron-icon {
+            transition-duration: 0.01ms !important;
+          }
+
+          .chevron-step:hover {
+            transform: none;
+          }
+
+          .chevron-step:hover .chevron-icon {
+            transform: none;
+          }
+
+          .chevron-step.active .chevron-icon {
+            animation: none;
+          }
+        }
       `}</style>
-    </div>
+    </nav>
   );
 }

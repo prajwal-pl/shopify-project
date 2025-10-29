@@ -15,6 +15,8 @@
  */
 
 import { memo } from "react";
+import { Gem } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { Stone } from "~/types/builder";
 
 interface StoneGridViewProps {
@@ -144,7 +146,7 @@ const StoneCard = memo(function StoneCard({
           />
         ) : (
           <div className="stone-image-placeholder">
-            <span className="placeholder-icon">💎</span>
+            <Icon icon={Gem} size="xxl" className="placeholder-icon" />
           </div>
         )}
 
@@ -247,8 +249,8 @@ const StoneCard = memo(function StoneCard({
         }
 
         .placeholder-icon {
-          font-size: 4rem;
           opacity: 0.3;
+          color: #999;
         }
 
         .certificate-badge {

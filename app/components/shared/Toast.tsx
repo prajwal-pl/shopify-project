@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 
 export interface ToastProps {
   message: string;
@@ -27,17 +29,19 @@ export function Toast({ message, type = "success", duration = 4000, onClose }: T
     info: "#3b82f6",
   }[type];
 
-  const icon = {
-    success: "✓",
-    error: "✕",
-    info: "ⓘ",
+  const IconComponent = {
+    success: CheckCircle,
+    error: AlertCircle,
+    info: Info,
   }[type];
 
   return (
     <>
       <div className="toast-container">
         <div className="toast-content">
-          <div className="toast-icon">{icon}</div>
+          <div className="toast-icon">
+            <Icon icon={IconComponent} size="sm" />
+          </div>
           <p className="toast-message">{message}</p>
           <button
             className="toast-close"
@@ -45,8 +49,9 @@ export function Toast({ message, type = "success", duration = 4000, onClose }: T
               setIsVisible(false);
               onClose?.();
             }}
+            aria-label="Close notification"
           >
-            ×
+            <Icon icon={X} size="sm" />
           </button>
         </div>
       </div>

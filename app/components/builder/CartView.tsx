@@ -5,7 +5,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
+import { X, Trash2, ShoppingBag, Loader2, CreditCard, ArrowLeft } from "lucide-react";
 import { useBuilder } from "./BuilderProvider";
+import { Icon } from "~/components/ui/Icon";
 
 interface CartItem {
   id: string | number;
@@ -136,7 +138,9 @@ export function CartView({ shop, onClose }: CartViewProps) {
           {item.image ? (
             <img src={item.image} alt={item.title} />
           ) : (
-            <div className="cart-item-placeholder">💍</div>
+            <div className="cart-item-placeholder">
+            <Icon icon={ShoppingBag} size="xl" style={{ opacity: 0.3 }} />
+          </div>
           )}
         </div>
 
@@ -179,8 +183,10 @@ export function CartView({ shop, onClose }: CartViewProps) {
             <button
               className="cart-item-remove"
               onClick={() => handleRemoveItem(item)}
+              aria-label="Remove item from cart"
             >
-              Remove
+              <Icon icon={Trash2} size="xs" />
+              <span>Remove</span>
             </button>
           </div>
         </div>
@@ -193,15 +199,15 @@ export function CartView({ shop, onClose }: CartViewProps) {
       <div className="cart-panel" onClick={(e) => e.stopPropagation()}>
         <div className="cart-header">
           <h2>Shopping Cart</h2>
-          <button className="cart-close" onClick={onClose}>
-            ×
+          <button className="cart-close" onClick={onClose} aria-label="Close cart">
+            <Icon icon={X} size="md" />
           </button>
         </div>
 
         <div className="cart-content">
           {loading ? (
             <div className="cart-loading">
-              <div className="spinner"></div>
+              <Icon icon={Loader2} size="xl" className="spinner" />
               <p>Loading cart...</p>
             </div>
           ) : cart.items.length === 0 ? (
@@ -230,13 +236,15 @@ export function CartView({ shop, onClose }: CartViewProps) {
                     window.location.href = "/checkout";
                   }}
                 >
-                  Proceed to Checkout
+                  <Icon icon={CreditCard} size="sm" />
+                  <span>Proceed to Checkout</span>
                 </button>
                 <button
                   className="cart-continue-button"
                   onClick={onClose}
                 >
-                  Continue Shopping
+                  <Icon icon={ArrowLeft} size="sm" />
+                  <span>Continue Shopping</span>
                 </button>
               </div>
             </>

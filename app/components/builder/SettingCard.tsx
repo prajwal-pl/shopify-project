@@ -5,11 +5,14 @@
  */
 
 import React, { useState } from "react";
+import { Settings, X, ChevronRight } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { Setting } from "~/types/builder";
 import { useBuilder } from "./BuilderProvider";
 import { formatPrice } from "~/utils/formatters";
 import { METAL_TYPES } from "~/utils/constants";
 import type { MetalType } from "~/utils/constants";
+import { PREFERS_REDUCED_MOTION } from "~/utils/accessibility";
 
 interface SettingCardProps {
   setting: Setting;
@@ -20,6 +23,7 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
   const { selectSetting } = useBuilder();
   const [showModal, setShowModal] = useState(false);
   const [selectedMetal, setSelectedMetal] = useState<MetalType | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleSelect = () => {
     if (selectedMetal) {
@@ -29,15 +33,36 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
   };
 
   const primaryImage = setting.images[0] || "";
+  const secondaryImage = setting.images[1] || primaryImage;
+  const hasMultipleImages = setting.images.length > 1;
 
   return (
     <>
-      <div className="setting-card">
+      <div
+        className="setting-card"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <div className="card-image">
           {primaryImage ? (
-            <img src={primaryImage} alt={setting.name} />
+            <>
+              <img
+                src={primaryImage}
+                alt={setting.name}
+                className={`card-image-primary ${isHovered && hasMultipleImages ? "hidden" : "visible"}`}
+              />
+              {hasMultipleImages && (
+                <img
+                  src={secondaryImage}
+                  alt={`${setting.name} alternate view`}
+                  className={`card-image-secondary ${isHovered ? "visible" : "hidden"}`}
+                />
+              )}
+            </>
           ) : (
-            <div className="no-image">⚙️</div>
+            <div className="no-image">
+              <Icon icon={Settings} size="xxl" />
+            </div>
           )}
         </div>
 
@@ -59,6 +84,7 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
             className="view-button"
           >
             View Details
+            <Icon icon={ChevronRight} size="xs" />
           </button>
         </div>
       </div>
@@ -71,8 +97,9 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
               <button
                 onClick={() => setShowModal(false)}
                 className="close-button"
+                aria-label="Close modal"
               >
-                ×
+                <Icon icon={X} size="lg" />
               </button>
             </div>
 
@@ -149,12 +176,14 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
           overflow: hidden;
           transition: all 0.3s ease;
           cursor: pointer;
+          will-change: transform;
         }
 
         .setting-card:hover {
           border-color: #d4af37;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          transform: translateY(-2px);
+          box-shadow: 0 12px 24px rgba(212, 175, 55, 0.2),
+                      0 4px 12px rgba(0, 0, 0, 0.1);
+          transform: translateY(-8px);
         }
 
         .card-image {
@@ -165,16 +194,42 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
           align-items: center;
           justify-content: center;
           overflow: hidden;
+          position: relative;
         }
 
         .card-image img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          position: absolute;
+          top: 0;
+          left: 0;
+          transition: opacity 0.5s ease, transform 0.5s ease;
+          will-change: opacity, transform;
+        }
+
+        .card-image-primary.visible,
+        .card-image-secondary.visible {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        .card-image-primary.hidden,
+        .card-image-secondary.hidden {
+          opacity: 0;
+          transform: scale(1.05);
+        }
+
+        .setting-card:hover .card-image img.visible {
+          transform: scale(1.08);
         }
 
         .no-image {
-          font-size: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #999;
+          opacity: 0.5;
         }
 
         .card-content {
@@ -212,11 +267,23 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.2s ease;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          outline: none;
         }
 
         .view-button:hover {
           background: #333333;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .view-button:focus-visible {
+          outline: 2px solid #d4af37;
+          outline-offset: 2px;
         }
 
         .modal-overlay {
@@ -259,13 +326,28 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
         .close-button {
           background: none;
           border: none;
-          font-size: 32px;
           color: #6d7175;
           cursor: pointer;
           line-height: 1;
           padding: 0;
           width: 32px;
           height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          border-radius: 4px;
+          outline: none;
+        }
+
+        .close-button:hover {
+          background: #f6f6f7;
+          color: #1a1a1a;
+        }
+
+        .close-button:focus-visible {
+          outline: 2px solid #d4af37;
+          outline-offset: 2px;
         }
 
         .modal-body {
@@ -374,10 +456,16 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
           font-weight: 600;
           cursor: pointer;
           transition: background 0.2s ease;
+          outline: none;
         }
 
         .select-button:hover:not(:disabled) {
           background: #c29d2f;
+        }
+
+        .select-button:focus-visible {
+          outline: 2px solid #1a1a1a;
+          outline-offset: 2px;
         }
 
         .select-button:disabled {
@@ -394,6 +482,29 @@ export function SettingCard({ setting, onSelect }: SettingCardProps) {
             flex-direction: column;
             align-items: flex-start;
             gap: 4px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .setting-card,
+          .card-image img,
+          .view-button,
+          .close-button,
+          .metal-option,
+          .select-button {
+            transition-duration: 0.01ms !important;
+          }
+
+          .setting-card:hover {
+            transform: none;
+          }
+
+          .setting-card:hover .card-image img.visible {
+            transform: none;
+          }
+
+          .view-button:hover {
+            transform: none;
           }
         }
       `}</style>

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Gem, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { Stone } from "~/types/builder";
 
 interface DiamondCardProps {
@@ -45,7 +47,7 @@ export function DiamondCard({ diamond, onSelect }: DiamondCardProps) {
             {diamond.images.length > 1 && (
               <div className="image-nav">
                 <button className="image-nav-btn prev" onClick={handlePrevImage} aria-label="Previous image">
-                  ‹
+                  <Icon icon={ChevronLeft} size="sm" />
                 </button>
                 <div className="image-dots">
                   {diamond.images.map((_, idx) => (
@@ -56,14 +58,14 @@ export function DiamondCard({ diamond, onSelect }: DiamondCardProps) {
                   ))}
                 </div>
                 <button className="image-nav-btn next" onClick={handleNextImage} aria-label="Next image">
-                  ›
+                  <Icon icon={ChevronRight} size="sm" />
                 </button>
               </div>
             )}
           </>
         ) : (
           <div className="diamond-card-placeholder">
-            <span className="placeholder-icon">💎</span>
+            <Icon icon={Gem} size="xxl" className="placeholder-icon" />
             <span className="placeholder-text">Image not available</span>
           </div>
         )}
@@ -102,7 +104,7 @@ export function DiamondCard({ diamond, onSelect }: DiamondCardProps) {
 
         {diamond.certificate && (
           <div className="diamond-card-cert">
-            <span className="cert-icon">📋</span>
+            <Icon icon={FileText} size="xs" className="cert-icon" />
             <span className="cert-text">{diamond.certificate} Certified</span>
           </div>
         )}
@@ -163,8 +165,8 @@ export function DiamondCard({ diamond, onSelect }: DiamondCardProps) {
         }
 
         .placeholder-icon {
-          font-size: 48px;
           opacity: 0.5;
+          color: #999;
         }
 
         .placeholder-text {
@@ -321,7 +323,7 @@ export function DiamondCard({ diamond, onSelect }: DiamondCardProps) {
         }
 
         .cert-icon {
-          font-size: 14px;
+          color: #7c2d5e;
         }
 
         .cert-text {

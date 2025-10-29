@@ -4,6 +4,8 @@
  * Display complete configuration details with edit buttons.
  */
 
+import { Circle, Gem, Sparkles, Edit2 } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type {
   Setting,
   Stone,
@@ -47,12 +49,16 @@ export function ConfigurationSummary({
       {/* Setting Section */}
       <div className="config-section">
         <div className="section-header">
-          <h4>💍 Ring Setting</h4>
+          <h4>
+            <Icon icon={Circle} size="sm" className="section-icon" />
+            Ring Setting
+          </h4>
           <button
             onClick={() => onEdit(1)}
             className="edit-button"
             aria-label="Edit setting"
           >
+            <Icon icon={Edit2} size="xs" />
             Edit
           </button>
         </div>
@@ -79,12 +85,16 @@ export function ConfigurationSummary({
       {/* Stone Section */}
       <div className="config-section">
         <div className="section-header">
-          <h4>💎 Center Stone</h4>
+          <h4>
+            <Icon icon={Gem} size="sm" className="section-icon" />
+            Center Stone
+          </h4>
           <button
             onClick={() => onEdit(2)}
             className="edit-button"
             aria-label="Edit stone"
           >
+            <Icon icon={Edit2} size="xs" />
             Edit
           </button>
         </div>
@@ -125,12 +135,16 @@ export function ConfigurationSummary({
       {/* Customization Section */}
       <div className="config-section">
         <div className="section-header">
-          <h4>✨ Customization</h4>
+          <h4>
+            <Icon icon={Sparkles} size="sm" className="section-icon" />
+            Customization
+          </h4>
           <button
             onClick={() => onEdit(3)}
             className="edit-button"
             aria-label="Edit customization"
           >
+            <Icon icon={Edit2} size="xs" />
             Edit
           </button>
         </div>
@@ -195,6 +209,13 @@ export function ConfigurationSummary({
           font-weight: 600;
           color: #374151;
           margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .section-icon {
+          color: #d4af37;
         }
 
         .edit-button {
@@ -207,12 +228,17 @@ export function ConfigurationSummary({
           color: #374151;
           cursor: pointer;
           transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .edit-button:hover {
           background: #f9fafb;
           border-color: #d4af37;
           color: #d4af37;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
         }
 
         .detail-grid {

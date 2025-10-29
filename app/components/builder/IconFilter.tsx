@@ -13,6 +13,8 @@
  * - Touch-friendly (44px min target)
  */
 
+import { Circle, Square, Diamond, Heart, Sparkles, Gem } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { StoneShape, SettingStyle } from "~/types/builder";
 
 export interface IconFilterItem {
@@ -81,9 +83,7 @@ export function IconFilter({
                 {item.icon ? (
                   <img src={item.icon} alt="" className="filter-icon" />
                 ) : (
-                  <span className="icon-emoji">
-                    {getIconEmoji(item.value, iconType)}
-                  </span>
+                  <Icon icon={getIconComponent(item.value, iconType)} size="lg" className="filter-icon-svg" />
                 )}
               </div>
               <span className="filter-label-text">{item.label}</span>
@@ -199,14 +199,17 @@ export function IconFilter({
           object-fit: contain;
         }
 
-        .icon-emoji {
-          font-size: 2.5rem;
+        .filter-icon-svg {
+          color: #666;
+          transition: color 0.2s ease;
         }
 
-        @media (max-width: 640px) {
-          .icon-emoji {
-            font-size: 1.75rem;
-          }
+        .icon-filter-item.selected .filter-icon-svg {
+          color: #6D2932;
+        }
+
+        .icon-filter-item:hover .filter-icon-svg {
+          color: #6D2932;
         }
 
         .filter-label-text {
@@ -241,36 +244,36 @@ export function IconFilter({
 }
 
 /**
- * Get emoji icon for shapes and styles
+ * Get lucide-react icon component for shapes and styles
  */
-function getIconEmoji(value: string, type: "shape" | "style"): string {
+function getIconComponent(value: string, type: "shape" | "style") {
   if (type === "shape") {
-    const shapeEmojis: Record<string, string> = {
-      round: "⚪",
-      princess: "◆",
-      oval: "⬭",
-      pear: "💧",
-      marquise: "🔶",
-      heart: "♥️",
-      emerald: "▭",
-      cushion: "◻️",
-      asscher: "▦",
-      radiant: "◊",
+    const shapeIcons: Record<string, any> = {
+      round: Circle,
+      princess: Square,
+      oval: Circle,
+      pear: Diamond,
+      marquise: Diamond,
+      heart: Heart,
+      emerald: Square,
+      cushion: Square,
+      asscher: Square,
+      radiant: Diamond,
     };
-    return shapeEmojis[value.toLowerCase()] || "💎";
+    return shapeIcons[value.toLowerCase()] || Gem;
   }
 
-  // Style emojis
-  const styleEmojis: Record<string, string> = {
-    halo: "⭕",
-    solitaire: "💍",
-    three_stone: "⚫⚫⚫",
-    single_row: "═",
-    trellis: "⚡",
-    multirow: "≡",
-    vintage: "🏛️",
-    pave: "✨",
-    bypass: "∞",
+  // Style icons
+  const styleIcons: Record<string, any> = {
+    halo: Circle,
+    solitaire: Circle,
+    three_stone: Circle,
+    single_row: Circle,
+    trellis: Diamond,
+    multirow: Circle,
+    vintage: Sparkles,
+    pave: Sparkles,
+    bypass: Circle,
   };
-  return styleEmojis[value.toLowerCase()] || "💍";
+  return styleIcons[value.toLowerCase()] || Circle;
 }

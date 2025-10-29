@@ -6,6 +6,8 @@
  */
 
 import React from "react";
+import { Bookmark, RotateCcw } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 
 interface ActionBarProps {
   onSaveSearch?: () => void;
@@ -27,8 +29,10 @@ export function ActionBar({
           type="button"
           className="action-button save-button"
           onClick={onSaveSearch}
+          aria-label="Save current search"
         >
-          💾 Save Search
+          <Icon icon={Bookmark} size="sm" />
+          Save Search
         </button>
       )}
 
@@ -37,8 +41,10 @@ export function ActionBar({
           type="button"
           className="action-button reset-button"
           onClick={onReset}
+          aria-label="Reset all filters"
         >
-          🔄 Reset
+          <Icon icon={RotateCcw} size="sm" />
+          Reset
         </button>
       )}
 

@@ -5,29 +5,21 @@
  */
 
 import React from "react";
+import { ShoppingCart } from "lucide-react";
 import { useBuilder } from "./BuilderProvider";
+import { Icon } from "~/components/ui/Icon";
 
 export function CartButton() {
   const { cartItemCount, openCart } = useBuilder();
 
   return (
     <>
-      <button className="cart-button" onClick={openCart}>
-        <svg
-          className="cart-icon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="9" cy="21" r="1"></circle>
-          <circle cx="20" cy="21" r="1"></circle>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-        </svg>
+      <button className="cart-button" onClick={openCart} aria-label="Open shopping cart">
+        <Icon icon={ShoppingCart} size="sm" className="cart-icon" />
         {cartItemCount > 0 && (
-          <span className="cart-badge">{cartItemCount}</span>
+          <span className="cart-badge" aria-label={`${cartItemCount} items in cart`}>
+            {cartItemCount}
+          </span>
         )}
         <span className="cart-text">Cart</span>
       </button>
@@ -56,9 +48,16 @@ export function CartButton() {
           box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
         }
 
+        .cart-button:active {
+          transform: translateY(-1px);
+        }
+
         .cart-icon {
-          width: 20px;
-          height: 20px;
+          transition: transform 0.2s ease;
+        }
+
+        .cart-button:hover .cart-icon {
+          transform: scale(1.1);
         }
 
         .cart-text {

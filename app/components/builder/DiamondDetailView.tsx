@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Video, Gem, Award, ClipboardList, Gift, HelpCircle, Mail, Printer, Calendar, Bookmark, Twitter, Facebook } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { Stone } from "~/types/builder";
 import { useBuilder } from "./BuilderProvider";
 
@@ -56,13 +58,15 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
                       />
                     </button>
                   ))}
-                  <button className="thumbnail video-thumb">
-                    📹
+                  <button className="thumbnail video-thumb" aria-label="Video view">
+                    <Icon icon={Video} size="md" />
                   </button>
                 </div>
               </>
             ) : (
-              <div className="placeholder-diamond">💎</div>
+              <div className="placeholder-diamond">
+                <Icon icon={Gem} size="xxl" style={{ opacity: 0.3 }} />
+              </div>
             )}
           </div>
 
@@ -70,7 +74,9 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
 
           <div className="grading-report">
             <div className="report-badge">
-              <div className="badge-icon">🏆</div>
+              <div className="badge-icon">
+              <Icon icon={Award} size="xxl" style={{ color: "#d4af37" }} />
+            </div>
               <div className="badge-text">
                 <p>This {stone.color} color, {stone.clarity} clarity diamond</p>
                 <p>comes accompanied by a diamond grading</p>
@@ -90,7 +96,10 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
             <h1 className="detail-title">
               {stone.carat} Carat {stone.shape.charAt(0).toUpperCase() + stone.shape.slice(1)} Diamond
             </h1>
-            <button className="spec-button">📋 Diamond Specification</button>
+            <button className="spec-button" aria-label="View diamond specification">
+              <Icon icon={ClipboardList} size="sm" />
+              Diamond Specification
+            </button>
           </div>
 
           <p className="detail-description">
@@ -117,20 +126,25 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           </div>
 
           <div className="action-buttons">
-            <button className="action-btn secondary">
-              🎁 Drop A Hint
+            <button className="action-btn secondary" aria-label="Drop a hint">
+              <Icon icon={Gift} size="sm" />
+              Drop A Hint
             </button>
-            <button className="action-btn secondary">
-              ❓ Request More Info
+            <button className="action-btn secondary" aria-label="Request more information">
+              <Icon icon={HelpCircle} size="sm" />
+              Request More Info
             </button>
-            <button className="action-btn secondary">
-              ✉️ E-Mail A Friend
+            <button className="action-btn secondary" aria-label="Email to a friend">
+              <Icon icon={Mail} size="sm" />
+              E-Mail A Friend
             </button>
-            <button className="action-btn secondary">
-              🖨️ Print Details
+            <button className="action-btn secondary" aria-label="Print details">
+              <Icon icon={Printer} size="sm" />
+              Print Details
             </button>
-            <button className="action-btn secondary">
-              📅 Schedule Viewing
+            <button className="action-btn secondary" aria-label="Schedule viewing">
+              <Icon icon={Calendar} size="sm" />
+              Schedule Viewing
             </button>
           </div>
 
@@ -148,9 +162,18 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           </div>
 
           <div className="social-share">
-            <button className="save-btn">💾 Save</button>
-            <button className="share-btn tweet">✖ Post</button>
-            <button className="share-btn">📘 Share</button>
+            <button className="save-btn" aria-label="Save diamond">
+              <Icon icon={Bookmark} size="xs" />
+              Save
+            </button>
+            <button className="share-btn tweet" aria-label="Share on Twitter">
+              <Icon icon={Twitter} size="xs" />
+              Post
+            </button>
+            <button className="share-btn" aria-label="Share on Facebook">
+              <Icon icon={Facebook} size="xs" />
+              Share
+            </button>
           </div>
         </div>
       </div>
@@ -216,8 +239,10 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
         }
 
         .placeholder-diamond {
-          font-size: 100px;
-          opacity: 0.3;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #999;
         }
 
         .image-thumbnails {
@@ -257,7 +282,10 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
         }
 
         .video-thumb {
-          font-size: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #7c2d5e;
         }
 
         .sku-line {
@@ -287,8 +315,10 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
         }
 
         .badge-icon {
-          font-size: 48px;
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .badge-text {
@@ -349,6 +379,9 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           font-weight: 500;
           cursor: pointer;
           white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .spec-button:hover {
@@ -404,6 +437,10 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           font-weight: 500;
           cursor: pointer;
           text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
         }
 
         .action-btn:hover {
@@ -472,6 +509,9 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           border-radius: 4px;
           font-size: 13px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .share-btn {
@@ -482,6 +522,9 @@ export function DiamondDetailView({ stone }: DiamondDetailViewProps) {
           border-radius: 4px;
           font-size: 13px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .share-btn.tweet {

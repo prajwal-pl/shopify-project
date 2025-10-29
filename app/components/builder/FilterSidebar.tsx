@@ -2,12 +2,16 @@
  * Filter Sidebar Component
  *
  * Sidebar with filters for settings or stones.
+ * Enhanced with lucide-react icons, visual metal swatches, and active filters display.
  */
 
 import React from "react";
+import { Filter, RotateCcw } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import { FilterGroup } from "../shared/FilterGroup";
 import { RangeSlider } from "../shared/RangeSlider";
-import { SETTING_STYLES, METAL_TYPES } from "~/utils/constants";
+import { MetalTypeFilter } from "./filters/MetalTypeFilter";
+import { SETTING_STYLES } from "~/utils/constants";
 import { formatPrice } from "~/utils/formatters";
 
 interface FilterSidebarProps {
@@ -47,8 +51,17 @@ export function FilterSidebar({
   return (
     <div className="filter-sidebar">
       <div className="filter-header">
-        <h3>Filters</h3>
+        <h3>
+          <Icon icon={Filter} size="sm" className="header-icon" />
+          Filters
+          {(filters.style?.length > 0 || filters.metalType?.length > 0) && (
+            <span className="filter-count">
+              {(filters.style?.length || 0) + (filters.metalType?.length || 0)}
+            </span>
+          )}
+        </h3>
         <button onClick={clearAllFilters} className="clear-all">
+          <Icon icon={RotateCcw} size="xs" />
           Clear All
         </button>
       </div>
@@ -63,9 +76,7 @@ export function FilterSidebar({
             multiSelect
           />
 
-          <FilterGroup
-            title="Metal Type"
-            options={METAL_TYPES as any}
+          <MetalTypeFilter
             selected={filters.metalType || []}
             onChange={handleMetalTypeChange}
             multiSelect
@@ -106,20 +117,54 @@ export function FilterSidebar({
           font-weight: 600;
           color: #202223;
           margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .header-icon {
+          color: #d4af37;
+        }
+
+        .filter-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 24px;
+          height: 24px;
+          padding: 0 8px;
+          background: #d4af37;
+          color: white;
+          font-size: 12px;
+          font-weight: 700;
+          border-radius: 12px;
+          animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+          0% { transform: scale(0); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
         }
 
         .clear-all {
+          display: flex;
+          align-items: center;
+          gap: 4px;
           background: none;
           border: none;
-          color: #2c6ecb;
+          color: #666;
           font-size: 13px;
           font-weight: 500;
           cursor: pointer;
-          padding: 0;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: all 0.2s ease;
         }
 
         .clear-all:hover {
-          text-decoration: underline;
+          background: #fee;
+          color: #e74c3c;
         }
 
         @media (max-width: 1024px) {

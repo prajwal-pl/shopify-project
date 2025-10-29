@@ -4,6 +4,8 @@
  * Visual button grid for selecting ring size (US standard 3-12).
  */
 
+import { Ruler } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import { RING_SIZES, type RingSize } from "~/utils/constants";
 
 interface RingSizeSelectorProps {
@@ -21,8 +23,9 @@ export function RingSizeSelector({
     <div className="ring-size-selector">
       <div className="selector-header">
         <h3>Select Ring Size</h3>
-        <button onClick={onShowGuide} className="guide-link" type="button">
-          📏 Size Guide
+        <button onClick={onShowGuide} className="guide-link" type="button" aria-label="Show ring size guide">
+          <Icon icon={Ruler} size="sm" />
+          Size Guide
         </button>
       </div>
 
@@ -73,6 +76,9 @@ export function RingSizeSelector({
           padding: 6px 12px;
           border-radius: 4px;
           transition: background 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .guide-link:hover {

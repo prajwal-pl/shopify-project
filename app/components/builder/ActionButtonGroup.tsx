@@ -13,6 +13,9 @@
  * Responsive layout (stacked on mobile, grid on desktop)
  */
 
+import { Heart, Mail, Send, Calendar, Camera } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
+
 export interface ActionButtonGroupProps {
   onDropHint: () => void;
   onRequestInfo: () => void;
@@ -41,7 +44,7 @@ export function ActionButtonGroup({
           onClick={onDropHint}
           aria-label="Drop a hint about this ring"
         >
-          <span className="btn-icon">💌</span>
+          <Icon icon={Heart} size="lg" className="btn-icon" />
           <span className="btn-text">
             <span className="btn-title">Drop A Hint</span>
             <span className="btn-subtitle">
@@ -56,7 +59,7 @@ export function ActionButtonGroup({
           onClick={onRequestInfo}
           aria-label="Request more information"
         >
-          <span className="btn-icon">📧</span>
+          <Icon icon={Mail} size="lg" className="btn-icon" />
           <span className="btn-text">
             <span className="btn-title">Request More Info</span>
             <span className="btn-subtitle">Ask us a question</span>
@@ -69,7 +72,7 @@ export function ActionButtonGroup({
           onClick={onEmailFriend}
           aria-label="Email this ring to a friend"
         >
-          <span className="btn-icon">✉️</span>
+          <Icon icon={Send} size="lg" className="btn-icon" />
           <span className="btn-text">
             <span className="btn-title">E-Mail A Friend</span>
             <span className="btn-subtitle">Share with someone you know</span>
@@ -82,7 +85,7 @@ export function ActionButtonGroup({
           onClick={onScheduleViewing}
           aria-label="Schedule an in-store viewing"
         >
-          <span className="btn-icon">📅</span>
+          <Icon icon={Calendar} size="lg" className="btn-icon" />
           <span className="btn-text">
             <span className="btn-title">Schedule Viewing</span>
             <span className="btn-subtitle">See it in person</span>
@@ -96,7 +99,7 @@ export function ActionButtonGroup({
             onClick={onVirtualTryOn}
             aria-label="Virtual try-on"
           >
-            <span className="btn-icon">📸</span>
+            <Icon icon={Camera} size="lg" className="btn-icon" />
             <span className="btn-text">
               <span className="btn-title">Virtual Try-On</span>
               <span className="btn-subtitle">See how it looks</span>
@@ -172,8 +175,8 @@ export function ActionButtonGroup({
         }
 
         .btn-icon {
-          font-size: 2rem;
           flex-shrink: 0;
+          color: #6D2932;
         }
 
         .btn-text {
@@ -220,10 +223,6 @@ export function ActionButtonGroup({
           .action-btn {
             min-height: 100px;
             padding: 1.5rem;
-          }
-
-          .btn-icon {
-            font-size: 2.5rem;
           }
         }
       `}</style>

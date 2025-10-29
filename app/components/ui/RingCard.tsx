@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Circle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import type { RingProduct } from "~/types/ring-product";
 
 interface RingCardProps {
@@ -45,7 +47,7 @@ export function RingCard({ product, onSelect }: RingCardProps) {
             {product.thumbnails.length > 1 && (
               <div className="image-nav">
                 <button className="image-nav-btn prev" onClick={handlePrevImage} aria-label="Previous image">
-                  ‹
+                  <Icon icon={ChevronLeft} size="sm" />
                 </button>
                 <div className="image-dots">
                   {product.thumbnails.map((_, idx) => (
@@ -56,14 +58,14 @@ export function RingCard({ product, onSelect }: RingCardProps) {
                   ))}
                 </div>
                 <button className="image-nav-btn next" onClick={handleNextImage} aria-label="Next image">
-                  ›
+                  <Icon icon={ChevronRight} size="sm" />
                 </button>
               </div>
             )}
           </>
         ) : (
           <div className="ring-card-placeholder">
-            <span className="placeholder-icon">💍</span>
+            <Icon icon={Circle} size="xxl" className="placeholder-icon" />
             <span className="placeholder-text">Image not available</span>
           </div>
         )}
@@ -151,8 +153,8 @@ export function RingCard({ product, onSelect }: RingCardProps) {
         }
 
         .placeholder-icon {
-          font-size: 48px;
           opacity: 0.5;
+          color: #999;
         }
 
         .placeholder-text {

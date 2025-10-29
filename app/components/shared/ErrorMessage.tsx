@@ -5,6 +5,8 @@
  */
 
 import React from "react";
+import { AlertTriangle, RotateCcw, ArrowLeft } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 
 interface ErrorMessageProps {
   message: string;
@@ -19,18 +21,22 @@ export function ErrorMessage({
 }: ErrorMessageProps) {
   return (
     <div className="error-message-container">
-      <div className="error-icon">⚠️</div>
+      <div className="error-icon">
+        <Icon icon={AlertTriangle} size="xxl" />
+      </div>
       <h3>Oops! Something went wrong</h3>
       <p className="error-text">{message}</p>
 
       <div className="error-actions">
         {onRetry && (
           <button onClick={onRetry} className="retry-button">
+            <Icon icon={RotateCcw} size="xs" />
             Try Again
           </button>
         )}
         {onGoBack && (
           <button onClick={onGoBack} className="back-button">
+            <Icon icon={ArrowLeft} size="xs" />
             Go Back
           </button>
         )}
@@ -47,8 +53,21 @@ export function ErrorMessage({
         }
 
         .error-icon {
-          font-size: 48px;
           margin-bottom: 16px;
+          color: #f39c12;
+          animation: errorShake 0.5s ease-in-out;
+        }
+
+        @keyframes errorShake {
+          0%, 100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-10px);
+          }
+          75% {
+            transform: translateX(10px);
+          }
         }
 
         .error-message-container h3 {
@@ -79,6 +98,9 @@ export function ErrorMessage({
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .retry-button {
@@ -88,6 +110,8 @@ export function ErrorMessage({
 
         .retry-button:hover {
           background: #1f5199;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(44, 110, 203, 0.3);
         }
 
         .back-button {
@@ -98,6 +122,8 @@ export function ErrorMessage({
 
         .back-button:hover {
           background: #f6f6f7;
+          transform: translateY(-2px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
       `}</style>
     </div>

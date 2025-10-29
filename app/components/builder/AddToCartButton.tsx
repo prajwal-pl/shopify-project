@@ -5,6 +5,8 @@
  */
 
 import React, { useState } from "react";
+import { ShoppingCart, Loader2 } from "lucide-react";
+import { Icon } from "~/components/ui/Icon";
 import { useBuilder } from "./BuilderProvider";
 
 interface AddToCartButtonProps {
@@ -216,11 +218,23 @@ export function AddToCartButton({
         onClick={handleAddToCart}
         disabled={isAdding || !selectedSetting || !selectedStone || !ringSize}
         className="add-to-cart-button"
+        aria-label={isAdding ? "Adding to cart" : "Add configured ring to cart"}
+        aria-busy={isAdding}
       >
-        {isAdding ? "Adding to Cart..." : "Add to Cart"}
+        {isAdding ? (
+          <>
+            <Icon icon={Loader2} size="sm" className="spinner" />
+            Adding to Cart...
+          </>
+        ) : (
+          <>
+            <Icon icon={ShoppingCart} size="sm" />
+            Add to Cart
+          </>
+        )}
       </button>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message" role="alert" aria-live="assertive">{error}</div>}
 
       <style>{`
         .add-to-cart-button {
@@ -236,6 +250,23 @@ export function AddToCartButton({
           transition: all 0.3s ease;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+        }
+
+        .spinner {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .add-to-cart-button:hover:not(:disabled) {
@@ -263,6 +294,13 @@ export function AddToCartButton({
           color: #991b1b;
           font-size: 14px;
           text-align: center;
+        }
+
+        @media (max-width: 768px) {
+          .add-to-cart-button {
+            padding: 16px 24px;
+            font-size: 16px;
+          }
         }
       `}</style>
     </>
