@@ -5,10 +5,10 @@
  * Enhanced UX with realistic metal colors and smooth animations.
  */
 
-import { Check, Circle } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { Icon } from "~/components/ui/Icon";
+import { cn } from "~/lib/utils";
 import type { MetalType } from "~/utils/constants";
-import { PREFERS_REDUCED_MOTION } from "~/utils/accessibility";
 
 interface MetalOption {
   value: MetalType;
@@ -88,178 +88,63 @@ export function MetalTypeFilter({
   };
 
   return (
-    <div className="metal-type-filter" role="group" aria-labelledby="metal-type-filter-label">
-      <div className="filter-label-wrapper">
-        <label className="filter-label" id="metal-type-filter-label">
-          <Icon icon={Circle} size="xs" className="label-icon" aria-hidden="true" />
+    <div
+      className="space-y-3 border-b border-border/60 pb-6 last:border-b-0"
+      role="group"
+      aria-labelledby="metal-type-filter-label"
+    >
+      <div className="flex items-center justify-between">
+        <span
+          id="metal-type-filter-label"
+          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+        >
+          <Icon icon={Sparkles} size="xs" className="h-3 w-3 text-primary/70" />
           Metal Type
-        </label>
+        </span>
+        {selected.length > 0 && (
+          <span className="text-xs font-medium text-primary/80">
+            {selected.length} selected
+          </span>
+        )}
       </div>
 
-      <div className="metal-options" role="list">
+      <div className="grid gap-3 sm:grid-cols-2">
         {METAL_OPTIONS.map((metal) => {
           const itemSelected = isSelected(metal.value);
-
           return (
             <button
               key={metal.value}
               type="button"
-              className={`metal-option ${itemSelected ? "selected" : ""}`}
+              className={cn(
+                "group flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition",
+                itemSelected
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border/50 bg-card/50 text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+              )}
               onClick={() => handleClick(metal.value)}
               aria-label={`Filter by ${metal.label}`}
               aria-pressed={itemSelected}
             >
-              <div
-                className="metal-swatch"
-                style={{
-                  background: metal.gradient,
-                }}
+              <span
+                className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/60 shadow-inner"
+                style={{ background: metal.gradient }}
               >
                 {itemSelected && (
-                  <Icon icon={Check} size="xs" color="white" strokeWidth={3} />
+                  <Icon icon={Check} size="sm" className="text-white drop-shadow-sm" />
                 )}
+              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold capitalize">
+                  {metal.label}
+                </span>
+                <span className="text-xs text-muted-foreground/70">
+                  {metal.value.replace(/_/g, " ")}
+                </span>
               </div>
-              <span className="metal-label">{metal.label}</span>
             </button>
           );
         })}
       </div>
-
-      <style>{`
-        .metal-type-filter {
-          margin-bottom: 24px;
-          padding-bottom: 24px;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .filter-label-wrapper {
-          margin-bottom: 12px;
-        }
-
-        .filter-label {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 14px;
-          font-weight: 600;
-          color: #202223;
-        }
-
-        .label-icon {
-          color: #d4af37;
-        }
-
-        .metal-options {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 0.75rem;
-        }
-
-        .metal-option {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem;
-          border: 2px solid #e5e5e5;
-          border-radius: 8px;
-          background: white;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          outline: none;
-        }
-
-        .metal-option:hover {
-          border-color: #d4af37;
-          background: #fffbf0;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
-        }
-
-        .metal-option:focus-visible {
-          outline: 2px solid #d4af37;
-          outline-offset: 2px;
-          border-color: #d4af37;
-          background: #fffbf0;
-        }
-
-        .metal-option.selected {
-          border-color: #d4af37;
-          background: #fffbf0;
-          box-shadow: 0 0 0 1px #d4af37;
-        }
-
-        .metal-swatch {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          border: 2px solid rgba(0, 0, 0, 0.1);
-          flex-shrink: 0;
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          will-change: transform;
-        }
-
-        .metal-option:hover .metal-swatch {
-          transform: scale(1.1);
-        }
-
-        .metal-option.selected .metal-swatch {
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2),
-                      0 0 0 2px white,
-                      0 0 0 4px #d4af37;
-          animation: swatchPop 0.3s ease-out;
-        }
-
-        @keyframes swatchPop {
-          0% {
-            transform: scale(0.8);
-          }
-          50% {
-            transform: scale(1.15);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-
-        .metal-label {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #202223;
-          transition: color 0.2s ease;
-        }
-
-        .metal-option.selected .metal-label {
-          color: #d4af37;
-          font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-          .metal-options {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .metal-option,
-          .metal-swatch,
-          .metal-label {
-            transition-duration: 0.01ms !important;
-          }
-
-          .metal-option:hover,
-          .metal-option:hover .metal-swatch {
-            transform: none;
-          }
-
-          .metal-option.selected .metal-swatch {
-            animation: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

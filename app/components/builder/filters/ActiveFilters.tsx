@@ -5,9 +5,11 @@
  * Enhances UX by showing what filters are applied and allowing quick removal.
  */
 
-import { X } from "lucide-react";
+import { X, XCircle } from "lucide-react";
 import { Icon } from "~/components/ui/Icon";
-import { PREFERS_REDUCED_MOTION } from "~/utils/accessibility";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 interface ActiveFilter {
   id: string;
@@ -25,195 +27,48 @@ export function ActiveFilters({ filters, onRemove, onClearAll }: ActiveFiltersPr
   if (filters.length === 0) return null;
 
   return (
-    <div className="active-filters">
-      <div className="active-filters-header">
-        <span className="active-count">
+    <div className="rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-background to-background px-5 py-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Badge className="bg-primary/10 text-primary">
           {filters.length} {filters.length === 1 ? "Filter" : "Filters"} Applied
-        </span>
+        </Badge>
         {onClearAll && (
-          <button
-            className="clear-all-btn"
-            onClick={onClearAll}
+          <Button
             type="button"
+            size="sm"
+            className="h-auto rounded-full border border-transparent bg-transparent px-3 py-2 text-xs font-semibold text-muted-foreground hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
+            onClick={onClearAll}
           >
+            <Icon icon={XCircle} size="sm" className="text-muted-foreground" />
             Clear All
-          </button>
+          </Button>
         )}
       </div>
 
-      <div className="filter-tags">
+      <div className="mt-4 flex flex-wrap gap-2">
         {filters.map((filter) => (
           <button
             key={filter.id}
-            className="filter-tag"
-            onClick={() => onRemove(filter.id)}
             type="button"
+            onClick={() => onRemove(filter.id)}
             aria-label={`Remove ${filter.label} filter`}
+            className={cn(
+              "group inline-flex items-center gap-2 rounded-full border border-primary/40 bg-white/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm transition",
+              "hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive"
+            )}
           >
-            <span className="tag-category">{filter.category}:</span>
-            <span className="tag-label">{filter.label}</span>
-            <Icon icon={X} size="xs" className="tag-remove" />
+            <span className="uppercase tracking-[0.18em] text-[0.65rem] text-muted-foreground">
+              {filter.category}
+            </span>
+            <span className="text-sm font-semibold capitalize">{filter.label}</span>
+            <Icon
+              icon={X}
+              size="xs"
+              className="text-muted-foreground transition group-hover:rotate-90 group-hover:text-destructive"
+            />
           </button>
         ))}
       </div>
-
-      <style>{`
-        .active-filters {
-          padding: 1rem;
-          background: #fffbf0;
-          border-radius: 8px;
-          border: 1px solid #f0e6d2;
-          margin-bottom: 1.5rem;
-          animation: slideIn 0.3s ease-out;
-          will-change: opacity, transform;
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .active-filters-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.75rem;
-        }
-
-        .active-count {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #d4af37;
-        }
-
-        .clear-all-btn {
-          background: none;
-          border: none;
-          color: #666;
-          font-size: 0.75rem;
-          font-weight: 500;
-          cursor: pointer;
-          padding: 4px 8px;
-          border-radius: 4px;
-          transition: all 0.2s ease;
-          outline: none;
-        }
-
-        .clear-all-btn:hover {
-          background: white;
-          color: #e74c3c;
-        }
-
-        .clear-all-btn:focus-visible {
-          outline: 2px solid #d4af37;
-          outline-offset: 2px;
-        }
-
-        .filter-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-
-        .filter-tag {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 20px;
-          font-size: 0.813rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          outline: none;
-          will-change: transform;
-        }
-
-        .filter-tag:hover {
-          background: #fee;
-          border-color: #e74c3c;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
-        }
-
-        .filter-tag:focus-visible {
-          outline: 2px solid #d4af37;
-          outline-offset: 2px;
-        }
-
-        .tag-category {
-          font-weight: 600;
-          color: #666;
-        }
-
-        .tag-label {
-          color: #202223;
-        }
-
-        .filter-tag:hover .tag-label,
-        .filter-tag:hover .tag-category {
-          color: #e74c3c;
-        }
-
-        .tag-remove {
-          transition: transform 0.2s ease;
-          color: #999;
-          will-change: transform;
-        }
-
-        .filter-tag:hover .tag-remove {
-          transform: rotate(90deg);
-          color: #e74c3c;
-        }
-
-        @media (max-width: 768px) {
-          .active-filters {
-            padding: 0.75rem;
-          }
-
-          .active-filters-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
-
-          .clear-all-btn {
-            align-self: flex-end;
-          }
-
-          .filter-tag {
-            font-size: 0.875rem;
-            padding: 0.625rem 0.875rem;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .active-filters {
-            animation: none;
-          }
-
-          .clear-all-btn,
-          .filter-tag,
-          .tag-remove {
-            transition-duration: 0.01ms !important;
-          }
-
-          .filter-tag:hover {
-            transform: none;
-          }
-
-          .filter-tag:hover .tag-remove {
-            transform: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -5,9 +5,11 @@
  * Enhanced with lucide-react icons, visual metal swatches, and active filters display.
  */
 
-import React from "react";
 import { Filter, RotateCcw } from "lucide-react";
 import { Icon } from "~/components/ui/Icon";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 import { FilterGroup } from "../shared/FilterGroup";
 import { RangeSlider } from "../shared/RangeSlider";
 import { MetalTypeFilter } from "./filters/MetalTypeFilter";
@@ -49,21 +51,40 @@ export function FilterSidebar({
   };
 
   return (
-    <div className="filter-sidebar">
-      <div className="filter-header">
-        <h3>
-          <Icon icon={Filter} size="sm" className="header-icon" />
-          Filters
-          {(filters.style?.length > 0 || filters.metalType?.length > 0) && (
-            <span className="filter-count">
-              {(filters.style?.length || 0) + (filters.metalType?.length || 0)}
-            </span>
-          )}
-        </h3>
-        <button onClick={clearAllFilters} className="clear-all">
+    <div
+      className={cn(
+        "rounded-3xl border border-border/60 bg-gradient-to-br from-background/90 via-background to-background/90 px-5 py-6 shadow-sm",
+        "backdrop-blur supports-[backdrop-filter]:bg-background/85"
+      )}
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary">
+            <Icon icon={Filter} size="sm" />
+          </span>
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold text-foreground">Filters</h3>
+            <p className="text-xs uppercase tracking-[0.32em] text-muted-foreground/70">
+              Refine your selection
+            </p>
+          </div>
+        </div>
+
+        {(filters.style?.length > 0 || filters.metalType?.length > 0) && (
+          <Badge className="bg-primary text-primary-foreground shadow-sm">
+            {(filters.style?.length || 0) + (filters.metalType?.length || 0)} Active
+          </Badge>
+        )}
+
+        <Button
+          type="button"
+          size="sm"
+          onClick={clearAllFilters}
+          className="h-auto rounded-full border border-transparent bg-transparent px-3 py-2 text-xs font-semibold text-muted-foreground hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
+        >
           <Icon icon={RotateCcw} size="xs" />
           Clear All
-        </button>
+        </Button>
       </div>
 
       {type === "settings" && (
@@ -94,96 +115,6 @@ export function FilterSidebar({
           />
         </>
       )}
-
-      <style>{`
-        .filter-sidebar {
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
-          padding: 20px;
-        }
-
-        .filter-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .filter-header h3 {
-          font-size: 18px;
-          font-weight: 600;
-          color: #202223;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .header-icon {
-          color: #d4af37;
-        }
-
-        .filter-count {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 24px;
-          height: 24px;
-          padding: 0 8px;
-          background: #d4af37;
-          color: white;
-          font-size: 12px;
-          font-weight: 700;
-          border-radius: 12px;
-          animation: pop 0.3s ease-out;
-        }
-
-        @keyframes pop {
-          0% { transform: scale(0); }
-          50% { transform: scale(1.2); }
-          100% { transform: scale(1); }
-        }
-
-        .clear-all {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: none;
-          border: none;
-          color: #666;
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          padding: 6px 12px;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-        }
-
-        .clear-all:hover {
-          background: #fee;
-          color: #e74c3c;
-        }
-
-        @media (max-width: 1024px) {
-          .filter-sidebar {
-            position: fixed;
-            top: 0;
-            left: -100%;
-            bottom: 0;
-            width: 300px;
-            z-index: 200;
-            transition: left 0.3s ease;
-            border-radius: 0;
-          }
-
-          .filter-sidebar.open {
-            left: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
