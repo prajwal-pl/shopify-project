@@ -4,7 +4,7 @@
  * Displays cart items with ring configurations.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useBuilder } from "./BuilderProvider";
 
 interface CartItem {
@@ -47,11 +47,7 @@ export function CartView({ shop, onClose }: CartViewProps) {
   const [loading, setLoading] = useState(true);
   const { showToast } = useBuilder();
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/builder/cart/get?shop=${shop}`);
@@ -66,9 +62,13 @@ export function CartView({ shop, onClose }: CartViewProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [shop, showToast]);
 
-  const handleRemoveItem = async (item: CartItem) => {
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  const handleRemoveItem = useCallback(async (item: CartItem) => {
     try {
       // If item is from database, delete the configuration
       if (item.is_from_database && item.id) {
@@ -115,7 +115,7 @@ export function CartView({ shop, onClose }: CartViewProps) {
         type: "error",
       });
     }
-  };
+  }, [shop, showToast, fetchCart]);
 
   const formatPrice = (price: number) => {
     return `$${(price / 100).toFixed(2)}`;

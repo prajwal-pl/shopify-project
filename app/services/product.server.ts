@@ -199,6 +199,48 @@ export async function getSettingByProductId(
   };
 }
 
+export async function getSettingsByProductIds(
+  productIds: string[],
+  shop: string,
+): Promise<Map<string, Setting>> {
+  if (productIds.length === 0) {
+    return new Map();
+  }
+
+  const metadataList = await prisma.settingMetadata.findMany({
+    where: {
+      productId: { in: productIds },
+      shop
+    },
+  });
+
+  const settingsMap = new Map<string, Setting>();
+
+  for (const metadata of metadataList) {
+    const compatibleShapes = JSON.parse(metadata.compatibleShapes);
+    const basePrices = JSON.parse(metadata.basePrices);
+    const images = metadata.images ? JSON.parse(metadata.images) : [];
+    const startingPrice = Math.min(
+      ...Object.values(basePrices as Record<string, number>),
+    );
+
+    settingsMap.set(metadata.productId, {
+      id: metadata.id,
+      productId: metadata.productId,
+      name: `Setting ${metadata.id.slice(0, 8)}`,
+      style: metadata.style as any,
+      settingHeight: metadata.settingHeight || undefined,
+      compatibleShapes,
+      basePrices,
+      startingPrice,
+      images,
+      featured: metadata.featured,
+    });
+  }
+
+  return settingsMap;
+}
+
 // ============================================================================
 // STONES
 // ============================================================================
@@ -428,6 +470,54 @@ export async function getStoneByProductId(
     price: metadata.price,
     available: metadata.available,
   };
+}
+
+export async function getStonesByProductIds(
+  productIds: string[],
+  shop: string,
+): Promise<Map<string, Stone>> {
+  if (productIds.length === 0) {
+    return new Map();
+  }
+
+  const metadataList = await prisma.stoneMetadata.findMany({
+    where: {
+      productId: { in: productIds },
+      shop
+    },
+  });
+
+  const stonesMap = new Map<string, Stone>();
+
+  for (const metadata of metadataList) {
+    const images = metadata.images ? JSON.parse(metadata.images) : [];
+
+    stonesMap.set(metadata.productId, {
+      id: metadata.id,
+      productId: metadata.productId,
+      stoneType: metadata.stoneType,
+      shape: metadata.shape as any,
+      carat: metadata.carat,
+      cut: metadata.cut as any,
+      color: metadata.color as any,
+      clarity: metadata.clarity as any,
+      diamondType: metadata.diamondType as any,
+      certificate: metadata.certificate as any,
+      certificateNumber: metadata.certificateNumber || undefined,
+      certificateUrl: metadata.certificateUrl || undefined,
+      measurements: metadata.measurements || undefined,
+      tablePercent: metadata.tablePercent || undefined,
+      depthPercent: metadata.depthPercent || undefined,
+      polish: metadata.polish || undefined,
+      symmetry: metadata.symmetry || undefined,
+      fluorescence: metadata.fluorescence || undefined,
+      images,
+      price: metadata.price,
+      available: metadata.available,
+    });
+  }
+
+  return stonesMap;
 }
 
 // ============================================================================

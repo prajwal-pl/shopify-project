@@ -8,7 +8,7 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import prisma from "~/db.server";
-import { getSettingByProductId, getStoneByProductId } from "~/services/product.server";
+import { getSettingsByProductIds, getStonesByProductIds } from "~/services/product.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -45,9 +45,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     console.log(`📦 Found ${configurations.length} configurations for cart`);
 
+    // Extract all product IDs (filter out scraped products)
+    const settingIds = configurations
+      .map(c => c.settingId)
+      .filter(id => !id.startsWith("scraped:"));
+    const stoneIds = configurations
+      .map(c => c.stoneId)
+      .filter(id => !id.startsWith("scraped:"));
+
+    // Batch fetch all settings and stones (2 queries instead of N queries)
+    const [settingsMap, stonesMap] = await Promise.all([
+      getSettingsByProductIds(settingIds, shop),
+      getStonesByProductIds(stoneIds, shop),
+    ]);
+
     // Enrich configurations with product details
-    const items = await Promise.all(
-      configurations.map(async (config) => {
+    const items = configurations.map((config) => {
         // Check if scraped product
         const isScrapedSetting = config.settingId.startsWith("scraped:");
         const isScrapedStone = config.stoneId.startsWith("scraped:");
@@ -58,13 +71,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         // Get setting details
         if (!isScrapedSetting) {
-          try {
-            const setting = await getSettingByProductId(config.settingId, shop);
-            if (setting) {
-              settingTitle = setting.name || "Ring Setting";
-            }
-          } catch (error) {
-            console.error("Error fetching setting:", error);
+          const setting = settingsMap.get(config.settingId);
+          if (setting) {
+            settingTitle = setting.name || "Ring Setting";
           }
         } else {
           settingTitle = `Sample Setting ${config.settingId.replace("scraped:", "")}`;
@@ -72,20 +81,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         // Get stone details
         if (!isScrapedStone) {
-          try {
-            const stone = await getStoneByProductId(config.stoneId, shop);
-            if (stone) {
-              stoneDetails = {
-                carat: stone.carat,
-                shape: stone.shape,
-                color: stone.color,
-                clarity: stone.clarity,
-                certificate: stone.certificate,
-              };
-              stoneTitle = `${stone.carat}ct ${stone.shape} Diamond`;
-            }
-          } catch (error) {
-            console.error("Error fetching stone:", error);
+          const stone = stonesMap.get(config.stoneId);
+          if (stone) {
+            stoneDetails = {
+              carat: stone.carat,
+              shape: stone.shape,
+              color: stone.color,
+              clarity: stone.clarity,
+              certificate: stone.certificate,
+            };
+            stoneTitle = `${stone.carat}ct ${stone.shape} Diamond`;
           }
         } else {
           stoneDetails = {
@@ -134,8 +139,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
           is_from_database: true,
           created_at: config.createdAt.toISOString(),
         };
-      })
-    );
+      });
 
     // Calculate total
     const total_price = items.reduce((sum, item) => sum + item.price, 0);

@@ -360,12 +360,52 @@ export function BuilderProvider({
   };
 
   useEffect(() => {
-    trackEvent('session_start', {
-      timestamp: new Date(sessionStartTime).toISOString(),
-      userAgent: navigator.userAgent,
-    });
-    refreshCartCount();
-  }, []);
+    const controller = new AbortController();
+
+    const initSession = async () => {
+      try {
+        await fetch('/api/builder/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            sessionId,
+            shop,
+            eventType: 'session_start',
+            timestamp: new Date(sessionStartTime).toISOString(),
+            data: {
+              timestamp: new Date(sessionStartTime).toISOString(),
+              userAgent: navigator.userAgent,
+            },
+          }),
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('Analytics tracking failed:', error);
+      }
+
+      try {
+        const response = await fetch(`/api/builder/cart/get?shop=${shop}`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        setCartItemCount(data.item_count || 0);
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('Failed to fetch cart count:', error);
+      }
+    };
+
+    initSession();
+
+    return () => {
+      controller.abort();
+    };
+  }, [shop, sessionId, sessionStartTime]);
 
   const value: BuilderContextType = {
     sessionId,

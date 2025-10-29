@@ -22,12 +22,29 @@ export async function action({ request }: ActionFunctionArgs) {
 
     console.log(`🗑️ Removing configuration: ${configurationId}`);
 
-    // Delete the configuration
+    // First, verify the configuration belongs to this shop (tenant isolation)
+    const config = await prisma.configuration.findUnique({
+      where: { id: configurationId },
+    });
+
+    if (!config) {
+      return Response.json(
+        { error: "Configuration not found" },
+        { status: 404 }
+      );
+    }
+
+    if (config.shop !== shop) {
+      console.log(`❌ Tenant isolation violation: Config ${configurationId} belongs to ${config.shop}, not ${shop}`);
+      return Response.json(
+        { error: "Configuration not found" },
+        { status: 404 }
+      );
+    }
+
+    // Now safe to delete
     const deleted = await prisma.configuration.delete({
-      where: {
-        id: configurationId,
-        shop, // Ensure tenant isolation
-      },
+      where: { id: configurationId },
     });
 
     console.log(`✅ Successfully removed configuration: ${deleted.configurationId}`);
