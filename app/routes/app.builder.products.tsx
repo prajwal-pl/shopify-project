@@ -16,18 +16,21 @@ import { useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "~/shopify.server";
 import prisma from "~/db.server";
 import { useState } from "react";
-import {
-  ProductDashboard,
-  type ProductDashboardProduct,
-} from "~/components/admin/ProductDashboard";
-import {
-  AddDiamondModal,
-  type DiamondFormData,
-} from "~/components/admin/AddDiamondModal";
-import {
-  AddSettingModal,
-  type SettingFormData,
-} from "~/components/admin/AddSettingModal";
+// import {
+//   ProductDashboard,
+//   type ProductDashboardProduct,
+// } from "~/components/admin/ProductDashboard";
+// import {
+//   AddDiamondModal,
+//   type DiamondFormData,
+// } from "~/components/admin/AddDiamondModal";
+// import {
+//   AddSettingModal,
+//   type SettingFormData,
+// } from "~/components/admin/AddSettingModal";
+type ProductDashboardProduct = any;
+type DiamondFormData = any;
+type SettingFormData = any;
 import { parseShopifyGid } from "~/utils/shopify-helpers";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -386,55 +389,17 @@ export default function ProductsPage() {
 
   return (
     <div className="products-page-v2">
-      <ProductDashboard
-        products={products}
-        totalCount={totalCount}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={(page) => {
-          window.location.href = `/app/builder/products?page=${page}`;
-        }}
-        onSync={handleSync}
-        onAddDiamond={handleAddDiamond}
-        onAddSetting={handleAddSetting}
-        onEdit={handleEdit}
-        onRemove={handleRemove}
-        onSearch={(query) => {
-          // Implement search (refresh with query param)
-          window.location.href = `/app/builder/products?search=${query}`;
-        }}
-        onFilterChange={(filter) => {
-          // Implement filter (refresh with filter param)
-          window.location.href = `/app/builder/products?filter=${filter}`;
-        }}
-        isLoading={fetcher.state === "submitting"}
-      />
+      <div style={{ padding: "40px", textAlign: "center", background: "white", borderRadius: "12px", margin: "20px" }}>
+        <h1>Product Management - Under Reconstruction</h1>
+        <p>Admin components are being rebuilt from scratch...</p>
+        <p style={{ marginTop: "20px", color: "#666" }}>
+          Total products: {totalCount} | Current page: {currentPage} / {totalPages}
+        </p>
+      </div>
 
-      {/* Add Diamond Modal */}
-      {modalType === "diamond" && selectedProduct && (
-        <AddDiamondModal
-          product={selectedProduct}
-          isOpen={true}
-          onClose={() => {
-            setModalType(null);
-            setSelectedProduct(null);
-          }}
-          onSave={handleSaveDiamond}
-        />
-      )}
-
-      {/* Add Setting Modal */}
-      {modalType === "setting" && selectedProduct && (
-        <AddSettingModal
-          product={selectedProduct}
-          isOpen={true}
-          onClose={() => {
-            setModalType(null);
-            setSelectedProduct(null);
-          }}
-          onSave={handleSaveSetting}
-        />
-      )}
+      {/* <ProductDashboard ... /> */}
+      {/* <AddDiamondModal ... /> */}
+      {/* <AddSettingModal ... /> */}
 
       <style>{`
         .products-page-v2 {

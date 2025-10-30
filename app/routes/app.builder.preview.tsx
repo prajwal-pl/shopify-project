@@ -7,7 +7,7 @@
 
 import type { LoaderFunctionArgs } from "react-router";
 import { authenticate } from "~/shopify.server";
-import { BuilderApp } from "~/components/builder/BuilderApp";
+// import { BuilderApp } from "~/components/builder/BuilderApp";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { session } = await authenticate.admin(request);
@@ -40,7 +40,11 @@ export default function BuilderPreviewPage() {
         </p>
       </div>
 
-      <BuilderApp shop={shop} />
+      <div style={{ padding: "40px", textAlign: "center", background: "white", borderRadius: "12px" }}>
+        <h2>Ring Builder Preview - Under Reconstruction</h2>
+        <p>Components are being rebuilt from scratch...</p>
+      </div>
+      {/* <BuilderApp shop={shop} /> */}
     </div>
   );
 }

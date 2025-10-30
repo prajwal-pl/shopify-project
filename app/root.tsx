@@ -1,5 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import "./tailwind.css";
+import { Toaster } from "sonner";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
       <body>
         <Outlet />
         <ScrollRestoration />
+        <Toaster richColors />
         <Scripts />
       </body>
     </html>

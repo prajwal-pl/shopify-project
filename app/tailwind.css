@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
@@ -43,6 +41,8 @@
 
 :root {
     --radius: 0.625rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.75rem;
     --background: oklch(0.985 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -74,6 +74,12 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.92 0 0);
     --sidebar-ring: oklch(0.65 0.05 330);
+    --page-padding: clamp(1.25rem, 3vw, 3rem);
+    --section-gap: clamp(2rem, 5vw, 4rem);
+    --grid-gap: clamp(1.5rem, 3vw, 2.5rem);
+    --status-success: oklch(0.72 0.14 145);
+    --status-warning: oklch(0.83 0.17 75);
+    --status-info: oklch(0.72 0.09 260);
 }
 
 .dark {
@@ -108,15 +114,22 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 0.1);
     --sidebar-ring: oklch(0.556 0 0);
+    --status-success: oklch(0.74 0.16 145);
+    --status-warning: oklch(0.69 0.16 70);
+    --status-info: oklch(0.66 0.1 250);
 }
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        border-color: var(--color-border);
+        outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent);
     }
 
     body {
-        @apply bg-background text-foreground antialiased;
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
     }
 
     h1,
@@ -125,6 +138,7 @@
     h4,
     h5,
     h6 {
-        @apply font-semibold text-foreground;
+        font-weight: 600;
+        color: var(--color-foreground);
     }
 }

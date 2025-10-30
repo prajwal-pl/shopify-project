@@ -14,7 +14,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useFetcher } from "react-router";
 import { authenticate } from "~/shopify.server";
 import prisma from "~/db.server";
-import { InquiryDashboard } from "~/components/admin/InquiryDashboard";
+// import { InquiryDashboard } from "~/components/admin/InquiryDashboard";
 import type {
   CustomerInquiry,
   InquiryType,
@@ -124,13 +124,14 @@ export default function InquiriesRoute() {
 
   return (
     <div className="inquiries-page">
-      <InquiryDashboard
-        inquiries={inquiries as CustomerInquiry[]}
-        totalCount={totalCount}
-        onStatusUpdate={handleStatusUpdate}
-        onFilterChange={handleFilterChange}
-        isLoading={fetcher.state === "submitting"}
-      />
+      <div style={{ padding: "40px", textAlign: "center", background: "white", borderRadius: "12px", margin: "20px" }}>
+        <h1>Customer Inquiries - Under Reconstruction</h1>
+        <p>Admin components are being rebuilt from scratch...</p>
+        <p style={{ marginTop: "20px", color: "#666" }}>
+          Total inquiries: {totalCount}
+        </p>
+      </div>
+      {/* <InquiryDashboard ... /> */}
     </div>
   );
 }
