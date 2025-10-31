@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
     BadgeCheck,
     Diamond,
@@ -21,6 +21,7 @@ import { Badge } from "~/components/ui/badge"
 import { Tabs, TabsContent } from "~/components/ui/tabs"
 import type { Setting, Stone } from "~/types/builder"
 import { METAL_TYPES, RING_SIZES, type MetalType, type RingSize } from "~/utils/constants"
+import { useSearchParams } from "react-router"
 import { BuilderStepTabs } from "./BuilderStepTabs"
 import { DiamondCard } from "./DiamondCard"
 import { MetalSelector } from "./MetalSelector"
@@ -65,12 +66,133 @@ interface BuilderAppProps {
     diamonds: Stone[]
 }
 
+const STEP_SEQUENCE: StepId[] = ["setting", "diamond", "review"]
+
+function isStepId(value: string | null): value is StepId {
+    return STEP_SEQUENCE.includes(value as StepId)
+}
+
+function isMetalTypeValue(value: string | null): value is MetalType {
+    if (!value) return false
+    return METAL_TYPES.some((metal) => metal.value === value)
+}
+
+function isRingSizeValue(value: string | null): value is RingSize {
+    if (!value) return false
+    return RING_SIZES.includes(value as RingSize)
+}
+
 export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
-    const [step, setStep] = useState<StepId>("setting")
-    const [selectedSetting, setSelectedSetting] = useState<Setting | null>(null)
+    const [searchParams, setSearchParams] = useSearchParams()
+    const searchParamsSnapshot = searchParams.toString()
+
+    const paramsSnapshotRef = useRef(searchParamsSnapshot)
+    useEffect(() => {
+        paramsSnapshotRef.current = searchParamsSnapshot
+    }, [searchParamsSnapshot])
+
+    const stepParam = searchParams.get("step")
+    const settingIdParam = searchParams.get("settingId")
+    const metalParam = searchParams.get("metal")
+    const ringSizeParam = searchParams.get("ringSize")
+
+    const [step, setStepState] = useState<StepId>(() => (isStepId(stepParam) ? stepParam : "setting"))
+    const [selectedSettingId, setSelectedSettingId] = useState<string | null>(() => settingIdParam)
     const [selectedStone, setSelectedStone] = useState<Stone | null>(null)
-    const [metalType, setMetalType] = useState<MetalType>(METAL_TYPES[0].value)
-    const [ringSize, setRingSize] = useState<RingSize>(RING_SIZES[6])
+    const [metalType, setMetalType] = useState<MetalType>(() =>
+        isMetalTypeValue(metalParam) ? metalParam : METAL_TYPES[0].value,
+    )
+    const [ringSize, setRingSize] = useState<RingSize>(() =>
+        isRingSizeValue(ringSizeParam) ? (ringSizeParam as RingSize) : RING_SIZES[6],
+    )
+
+    useEffect(() => {
+        if (isStepId(stepParam) && stepParam !== step) {
+            setStepState(stepParam)
+        } else if (!stepParam && step !== "setting") {
+            setStepState("setting")
+        }
+    }, [stepParam])
+
+    useEffect(() => {
+        if (settingIdParam !== selectedSettingId) {
+            setSelectedSettingId(settingIdParam)
+        }
+    }, [settingIdParam, selectedSettingId])
+
+    useEffect(() => {
+        if (isMetalTypeValue(metalParam) && metalParam !== metalType) {
+            setMetalType(metalParam)
+        }
+    }, [metalParam, metalType])
+
+    useEffect(() => {
+        if (isRingSizeValue(ringSizeParam) && ringSizeParam !== ringSize) {
+            setRingSize(ringSizeParam as RingSize)
+        }
+    }, [ringSizeParam, ringSize])
+
+    const selectedSetting = useMemo(() => {
+        if (!selectedSettingId) return null
+        return settings.find((candidate) => candidate.id === selectedSettingId) ?? null
+    }, [selectedSettingId, settings])
+
+    const detailBaseQueryString = useMemo(() => {
+        const params = new URLSearchParams()
+        if (shop) params.set("shop", shop)
+        if (metalType) params.set("metal", metalType)
+        if (ringSize) params.set("ringSize", ringSize)
+        return params.toString()
+    }, [shop, metalType, ringSize])
+
+    const previousSettingIdRef = useRef<string | null>(selectedSettingId)
+    useEffect(() => {
+        if (previousSettingIdRef.current && previousSettingIdRef.current !== selectedSettingId) {
+            setSelectedStone(null)
+        }
+        if (!selectedSettingId) {
+            setSelectedStone(null)
+        }
+        previousSettingIdRef.current = selectedSettingId
+    }, [selectedSettingId])
+
+    useEffect(() => {
+        const base = new URLSearchParams(paramsSnapshotRef.current)
+
+        if (selectedSettingId) {
+            base.set("settingId", selectedSettingId)
+        } else {
+            base.delete("settingId")
+        }
+
+        if (step !== "setting") {
+            base.set("step", step)
+        } else {
+            base.delete("step")
+        }
+
+        if (metalType) {
+            base.set("metal", metalType)
+        } else {
+            base.delete("metal")
+        }
+
+        if (ringSize) {
+            base.set("ringSize", ringSize)
+        } else {
+            base.delete("ringSize")
+        }
+
+        if (shop) {
+            base.set("shop", shop)
+        }
+
+        const nextString = base.toString()
+        if (nextString !== paramsSnapshotRef.current) {
+            paramsSnapshotRef.current = nextString
+            setSearchParams(base, { replace: true })
+        }
+    }, [selectedSettingId, step, metalType, ringSize, shop, setSearchParams])
 
     const totals = useMemo(() => {
         const settingPrice = selectedSetting?.basePrices[metalType] ?? 0
@@ -147,9 +269,15 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                 <Tabs
                     value={step}
                     onValueChange={(value) => {
-                        if (value === "diamond" && !canAdvanceToDiamond) return
-                        if (value === "review" && !canAdvanceToReview) return
-                        setStep(value as StepId)
+                        const stepIndex = STEP_SEQUENCE.indexOf(value as StepId)
+                        const currentIndex = STEP_SEQUENCE.indexOf(step)
+
+                        if (stepIndex > currentIndex) {
+                            if (value === "diamond" && !canAdvanceToDiamond) return
+                            if (value === "review" && !canAdvanceToReview) return
+                        }
+
+                        setStepState(value as StepId)
                     }}
                     className="flex flex-col gap-8"
                 >
@@ -173,16 +301,16 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                                 {settings.map((setting) => {
                                     const isSelected = selectedSetting?.id === setting.id
                                     const price = setting.basePrices[metalType] ?? setting.startingPrice
+                                    const detailParams = new URLSearchParams(detailBaseQueryString)
+                                    detailParams.set("from", "builder")
+                                    const href = `/builder/setting/${setting.id}?${detailParams.toString()}`
                                     return (
                                         <SettingCard
                                             key={setting.id}
                                             setting={setting}
                                             price={price}
                                             selected={isSelected}
-                                            onSelect={() => {
-                                                setSelectedSetting(setting)
-                                                setStep("diamond")
-                                            }}
+                                            href={href}
                                         />
                                     )
                                 })}
@@ -220,7 +348,7 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                                             selected={isSelected}
                                             onSelect={() => {
                                                 setSelectedStone(stone)
-                                                setStep("review")
+                                                setStepState("review")
                                             }}
                                         />
                                     )
