@@ -19,23 +19,31 @@ interface BuilderStepTabsProps {
 }
 
 export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
-    const activeIndex = steps.findIndex((step) => step.id === currentStep)
-    const progress = steps.length > 1 ? (activeIndex / (steps.length - 1)) * 100 : 0
+    const rawActiveIndex = steps.findIndex((step) => step.id === currentStep)
+    const activeIndex = Math.max(0, rawActiveIndex)
+    const maxIndex = Math.max(steps.length - 1, 1)
+    const progress = steps.length > 1 ? Math.min((activeIndex / maxIndex) * 100, 100) : 0
 
     return (
-        <div className="relative isolate mb-6 sm:mb-8 md:mb-10">
+        <div className="relative isolate w-full">
             {/* Progress track container constrained inside the tabs area */}
-            <div className="pointer-events-none absolute inset-x-[3%] top- hidden -translate-y-1/2 sm:block">
-                <div className="relative h-[3px]">
-                    <div className="absolute inset-0 rounded-full bg-muted" />
+            <div className="pointer-events-none absolute inset-x-6 top-1/2 hidden -translate-y-1/2 sm:block lg:inset-x-8">
+                <div className="relative h-[3px] w-full overflow-hidden rounded-full bg-muted/70">
                     <div
-                        className="absolute inset-y-0 left-0 h-full rounded-full bg-primary/70 transition-transform duration-500"
-                        style={{ transform: `scaleX(${Math.max(0, progress) / 100})`, transformOrigin: "left" }}
+                        className="absolute inset-y-0 left-0 h-full w-full origin-left rounded-full bg-primary transition-transform duration-500"
+                        style={{ transform: `scaleX(${Math.max(0, progress) / 100})` }}
                     />
                 </div>
             </div>
 
-            <TabsList className="relative z-10 grid w-full grid-cols-1 items-stretch gap-3 rounded-3xl border border-border/60 bg-background/90 p-3 shadow-lg backdrop-blur-sm sm:grid-cols-3 sm:p-4">
+            <TabsList
+                className={cn(
+                    "relative z-10 mb-4 w-full rounded-2xl border border-border/50 bg-background shadow-lg h-full",
+                    "flex flex-col gap-3 p-3",
+                    "sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:gap-4 sm:p-4",
+                    "lg:gap-5 lg:p-5",
+                )}
+            >
                 {steps.map((step, index) => {
                     const Icon = step.icon
                     const isActive = currentStep === step.id
@@ -48,19 +56,21 @@ export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
                             disabled={step.disabled}
                             data-complete={step.completed}
                             className={cn(
-                                "group relative flex h-full min-h-[112px] flex-col justify-between gap-3 rounded-2xl border border-transparent px-4 py-4 text-left transition-all duration-300",
-                                "bg-background/80 shadow-sm",
+                                "group relative flex h-full w-full flex-col justify-between gap-3 rounded-xl border border-transparent bg-background/90 px-4 py-3 text-left transition-all duration-300",
+                                "sm:min-h-[112px] lg:min-h-[124px]",
+                                "shadow-sm",
                                 "hover:border-primary/30 hover:bg-primary/5",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
                                 "data-[state=active]:border-primary/60 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/20 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg",
                                 step.completed && "border-primary/40 bg-primary/5",
                                 step.disabled && "cursor-not-allowed opacity-60",
+                                "items-stretch whitespace-normal",
                             )}
                         >
                             <div className="flex items-center gap-3">
                                 <span
                                     className={cn(
-                                        "flex size-11 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-all duration-300",
+                                        "flex size-10 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-all duration-300",
                                         "group-data-[state=active]:border-primary/70 group-data-[state=active]:bg-primary/10 group-data-[state=active]:text-primary",
                                         step.completed && "border-primary/70 bg-primary/10 text-primary",
                                     )}
@@ -71,12 +81,12 @@ export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
                                     <span className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
                                         Step {index + 1}
                                     </span>
-                                    <span className="text-sm font-semibold leading-none text-foreground group-data-[state=active]:text-foreground">
+                                    <span className="text-sm font-semibold leading-snug text-foreground group-data-[state=active]:text-foreground">
                                         {step.title}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs leading-relaxed text-muted-foreground">
                                 {step.description}
                             </p>
                         </TabsTrigger>

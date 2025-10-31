@@ -128,7 +128,7 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
 
     return (
         <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(226,207,255,0.25),transparent_55%)] pb-20">
-            <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pt-12 sm:px-8 lg:px-12">
+            <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pt-8 sm:px-8 lg:px-12">
                 <header className="flex flex-col gap-4">
                     <Badge variant="outline" className="w-fit gap-2 border-transparent bg-primary/10 text-sm text-primary">
                         <Wand2 className="size-3.5" />
