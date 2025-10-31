@@ -334,42 +334,7 @@ export default function BuilderSettingDetailRoute() {
               </CardContent>
             </Card>
 
-            {related.length > 0 && (
-              <Card className="border border-border/60 bg-background/70 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-foreground">You may also like</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">
-                    Explore additional handcrafted settings that complement your style.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {related.map((candidate) => {
-                    const detailParams = new URLSearchParams()
-                    detailParams.set("shop", shop)
-                    detailParams.set("metal", selectedMetal)
-                    detailParams.set("ringSize", ringSize)
-                    if (from) {
-                      detailParams.set("from", from)
-                    }
-                    const priceForCard = candidate.basePrices[selectedMetal] ?? candidate.startingPrice
-                    return (
-                      <SettingCard
-                        key={candidate.id}
-                        setting={candidate as Setting}
-                        price={priceForCard}
-                        selected={candidate.id === setting.id}
-                        href={`/builder/setting/${candidate.id}?${detailParams.toString()}`}
-                      />
-                    )
-                  })}
-                  <Link to={backToBuilderHref} className="inline-flex items-center justify-start w-full px-0 text-sm font-medium hover:text-primary transition-colors">
-                    Back to all settings
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="border border-border/60 bg-background/80 shadow-none">
+            {/* <Card className="border border-border/60 bg-background/80 shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold text-foreground">Need assistance?</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -385,9 +350,46 @@ export default function BuilderSettingDetailRoute() {
                   Schedule a consultation
                 </Link>
               </CardContent>
-            </Card>
+            </Card> */}
           </aside>
         </div>
+
+        {related.length > 0 && (
+          <section className="">
+            <header className="mb-6">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">You may also like</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Explore additional handcrafted settings that complement your style.
+              </p>
+            </header>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {related.map((candidate) => {
+                const detailParams = new URLSearchParams()
+                detailParams.set("shop", shop)
+                detailParams.set("metal", selectedMetal)
+                detailParams.set("ringSize", ringSize)
+                if (from) {
+                  detailParams.set("from", from)
+                }
+                const priceForCard = candidate.basePrices[selectedMetal] ?? candidate.startingPrice
+                return (
+                  <SettingCard
+                    key={candidate.id}
+                    setting={candidate as Setting}
+                    price={priceForCard}
+                    selected={candidate.id === setting.id}
+                    href={`/builder/setting/${candidate.id}?${detailParams.toString()}`}
+                  />
+                )
+              })}
+            </div>
+            <div className="mt-6">
+              <Link to={backToBuilderHref} className="inline-flex items-center justify-start text-sm font-medium hover:text-primary transition-colors">
+                Back to all settings
+              </Link>
+            </div>
+          </section>
+        )}
       </section>
     </main>
   )
