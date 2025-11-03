@@ -33,9 +33,9 @@ export function SettingCard({ setting, price, selected, href }: SettingCardProps
         >
             <Card
                 className={cn(
-                    "relative h-full overflow-hidden rounded-2xl border border-border/80 bg-background/80 shadow-lg transition-transform duration-300",
-                    "group-hover:-translate-y-1.5 group-hover:shadow-xl",
-                    selected ? "ring-2 ring-primary/60" : "ring-1 ring-border"
+                    "relative h-full overflow-hidden rounded-lg border border-stone-200 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300",
+                    "group-hover:-translate-y-2 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] group-hover:border-stone-300",
+                    selected ? "ring-2 ring-primary border-primary/40 shadow-[0_8px_24px_rgba(124,58,237,0.15)]" : "ring-0"
                 )}
             >
                 <div className="relative aspect-[4/3] overflow-hidden">

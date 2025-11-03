@@ -151,8 +151,8 @@ export default function BuilderSettingDetailRoute() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(240,236,255,0.45),transparent_55%)]">
-      <header className="border-b border-border/40 bg-background/95 backdrop-blur">
+    <main className="min-h-screen bg-gradient-to-br from-amber-50/30 via-white to-stone-50/40">
+      <header className="border-b border-stone-200 bg-white/95 backdrop-blur-xl shadow-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 sm:px-8 lg:px-12">
           <button
             type="button"
@@ -180,7 +180,7 @@ export default function BuilderSettingDetailRoute() {
                     type="button"
                     onClick={() => setActiveImageIndex(index)}
                     className={cn(
-                      "relative flex aspect-square size-24 min-w-[92px] items-center justify-center overflow-hidden rounded-2xl border transition",
+                      "relative flex aspect-square size-24 min-w-[92px] items-center justify-center overflow-hidden rounded-md border transition",
                       activeImageIndex === index
                         ? "border-primary/60 shadow-lg"
                         : "border-border/60 bg-background/80 hover:border-primary/40"
@@ -195,7 +195,7 @@ export default function BuilderSettingDetailRoute() {
                   </button>
                 ))}
               </div>
-              <div className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-background/90 shadow-2xl">
+              <div className="relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
                 <img
                   src={galleryImages[activeImageIndex]}
                   alt={setting.name}
@@ -204,7 +204,7 @@ export default function BuilderSettingDetailRoute() {
               </div>
             </div>
 
-            <Card className="border border-border/60 bg-background/70 shadow-lg">
+            <Card className="border border-stone-200 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
               <CardHeader className="space-y-3">
                 <CardTitle className="text-xl font-semibold text-foreground">
                   Crafted for daily brilliance
@@ -222,7 +222,7 @@ export default function BuilderSettingDetailRoute() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/60 bg-background/70 shadow-none">
+            <Card className="border border-stone-200 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold text-foreground">Included care</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -246,7 +246,7 @@ export default function BuilderSettingDetailRoute() {
               >
                 Setting spotlight
               </Badge>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h1 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
                 {setting.name}
               </h1>
               <div className="flex flex-wrap items-baseline gap-3">
@@ -257,7 +257,7 @@ export default function BuilderSettingDetailRoute() {
               </div>
             </section>
 
-            <section className="rounded-[2rem] border border-border/50 bg-background/90 p-6 shadow-lg backdrop-blur-sm">
+            <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
               <header className="space-y-1">
                 <h2 className="text-lg font-semibold text-foreground">Customize your setting</h2>
                 <p className="text-sm text-muted-foreground">
@@ -311,7 +311,7 @@ export default function BuilderSettingDetailRoute() {
               </div>
             </section>
 
-            <Card className="border border-primary/30 bg-primary/5 shadow-none">
+            <Card className="border border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 shadow-md">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base font-semibold text-foreground">Select this setting</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
@@ -427,7 +427,7 @@ function OptionPill({ label, active, onClick }: { label: string; active: boolean
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl border border-border/50 bg-background/60 p-4">
+    <div className="flex flex-col gap-1 rounded-md border border-border/50 bg-background/80 p-4">
       <span className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80">{label}</span>
       <span className="text-sm font-medium text-foreground">{value}</span>
     </div>

@@ -38,7 +38,7 @@ export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
 
             <TabsList
                 className={cn(
-                    "relative z-10 mb-4 w-full rounded-2xl border border-border/50 bg-background shadow-lg h-full",
+                    "relative z-10 mb-4 w-full rounded-lg border border-stone-200 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] h-full",
                     "flex flex-col gap-3 p-3",
                     "sm:grid sm:auto-rows-fr sm:grid-cols-3 sm:gap-4 sm:p-4",
                     "lg:gap-5 lg:p-5",
@@ -56,12 +56,12 @@ export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
                             disabled={step.disabled}
                             data-complete={step.completed}
                             className={cn(
-                                "group relative flex h-full w-full flex-col justify-between gap-3 rounded-xl border border-transparent bg-background/90 px-4 py-3 text-left transition-all duration-300",
+                                "group relative flex h-full w-full flex-col justify-between gap-3 rounded-md border border-transparent bg-stone-50/50 px-4 py-3 text-left transition-all duration-300",
                                 "sm:min-h-[112px] lg:min-h-[124px]",
                                 "shadow-sm",
-                                "hover:border-primary/30 hover:bg-primary/5",
+                                "hover:border-stone-200 hover:bg-white hover:shadow-sm",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
-                                "data-[state=active]:border-primary/60 data-[state=active]:bg-gradient-to-br data-[state=active]:from-primary/20 data-[state=active]:to-primary/5 data-[state=active]:shadow-lg",
+                                "data-[state=active]:border-primary/50 data-[state=active]:bg-white data-[state=active]:shadow-md",
                                 step.completed && "border-primary/40 bg-primary/5",
                                 step.disabled && "cursor-not-allowed opacity-60",
                                 "items-stretch whitespace-normal",
@@ -70,7 +70,7 @@ export function BuilderStepTabs({ steps, currentStep }: BuilderStepTabsProps) {
                             <div className="flex items-center gap-3">
                                 <span
                                     className={cn(
-                                        "flex size-10 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-all duration-300",
+                                        "flex size-10 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-all duration-300",
                                         "group-data-[state=active]:border-primary/70 group-data-[state=active]:bg-primary/10 group-data-[state=active]:text-primary",
                                         step.completed && "border-primary/70 bg-primary/10 text-primary",
                                     )}

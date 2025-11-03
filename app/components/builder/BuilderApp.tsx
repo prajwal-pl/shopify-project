@@ -237,19 +237,49 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
         })
     }, [selectedSetting, selectedStone])
 
-    const handleAddToCart = () => {
-        // Placeholder integration until checkout flow is wired to Shopify cart APIs.
-        console.log("builder:add-to-cart", {
-            shop,
-            settingId: selectedSetting?.id,
-            stoneId: selectedStone?.id,
-            metalType,
-            ringSize,
-        })
+    const [isAddingToCart, setIsAddingToCart] = useState(false)
+
+    const handleAddToCart = async () => {
+        if (!selectedSetting || !selectedStone) return
+
+        setIsAddingToCart(true)
+
+        try {
+            const settingId = selectedSetting.id.startsWith("gid://") ? selectedSetting.id : `scraped:${selectedSetting.id}`
+            const stoneId = selectedStone.id.startsWith("gid://") ? selectedStone.id : `scraped:${selectedStone.id}`
+
+            const formData = new FormData()
+            formData.append("shop", shop)
+            formData.append("settingId", settingId)
+            formData.append("stoneId", stoneId)
+            formData.append("metalType", metalType)
+            formData.append("ringSize", ringSize)
+            formData.append("totalPrice", totals.total.toString())
+
+            const response = await fetch("/api/builder/cart", {
+                method: "POST",
+                body: formData,
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                console.error("Failed to add to cart:", data.error)
+                alert(data.error || "Failed to add to cart. Please try again.")
+                return
+            }
+
+            window.location.href = `/builder/cart?shop=${shop}`
+        } catch (error) {
+            console.error("Error adding to cart:", error)
+            alert("Failed to add to cart. Please try again.")
+        } finally {
+            setIsAddingToCart(false)
+        }
     }
 
     return (
-        <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(226,207,255,0.25),transparent_55%)] pb-20">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50/30 via-white to-stone-50/40 pb-20">
             <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 pt-8 sm:px-8 lg:px-12">
                 <header className="flex flex-col gap-4">
                     <Badge variant="outline" className="w-fit gap-2 border-transparent bg-primary/10 text-sm text-primary">
@@ -257,10 +287,10 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                         Build your ring — {shop}
                     </Badge>
                     <div className="flex flex-col gap-3">
-                        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                        <h1 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
                             Craft a ring as unique as your story
                         </h1>
-                        <p className="max-w-2xl text-base text-muted-foreground">
+                        <p className="max-w-2xl text-base leading-relaxed text-stone-600">
                             Follow the guided steps to pair a designer setting with a dazzling diamond, then review every detail before checkout. Save progress or share with a loved one at any point.
                         </p>
                     </div>
@@ -359,12 +389,12 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
 
                     <TabsContent value="review" className="focus-visible:outline-none">
                         <StagePanel panelKey="review" className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-                            <Card className="border-0 bg-background/60 shadow-lg backdrop-blur">
+                            <Card className="border border-stone-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
                                 <CardHeader className="gap-3">
-                                    <CardTitle className="text-2xl font-semibold">
+                                    <CardTitle className="text-2xl font-bold text-stone-900">
                                         Final review
                                     </CardTitle>
-                                    <CardDescription className="leading-relaxed">
+                                    <CardDescription className="text-base leading-relaxed text-stone-600">
                                         Confirm your configuration, adjust sizing, and add optional protection before proceeding to checkout.
                                     </CardDescription>
                                 </CardHeader>
@@ -388,13 +418,13 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                                         accent={selectedStone ? DIAMOND_TYPE_LABEL[selectedStone.diamondType] : undefined}
                                     />
 
-                                    <Card className="rounded-2xl border-dashed bg-card/60">
+                                    <Card className="rounded-lg border-2 border-stone-200 bg-gradient-to-br from-stone-50 to-white shadow-sm">
                                         <CardHeader className="gap-1">
-                                            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                            <CardTitle className="flex items-center gap-2 text-base font-bold text-stone-900">
                                                 <Palette className="size-4 text-primary" />
                                                 Customize fit
                                             </CardTitle>
-                                            <CardDescription className="text-sm">
+                                            <CardDescription className="text-sm text-stone-600">
                                                 Pick a metal finish and ring size best suited for daily wear.
                                             </CardDescription>
                                         </CardHeader>
@@ -414,7 +444,7 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                                         </CardContent>
                                     </Card>
                                 </CardContent>
-                                <CardFooter className="flex flex-col items-start gap-3 border-t border-dashed/50 pt-6">
+                                <CardFooter className="flex flex-col items-start gap-3 border-t border-stone-200 pt-6">
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <BadgeCheck className="size-4 text-success" />
                                         Free 60-day resizing and insured shipping included.
@@ -422,7 +452,7 @@ export function BuilderApp({ shop, settings, diamonds }: BuilderAppProps) {
                                 </CardFooter>
                             </Card>
 
-                            <PriceSummaryCard totals={totals} onAddToCart={handleAddToCart} disabled={!canAdvanceToReview} />
+                            <PriceSummaryCard totals={totals} onAddToCart={handleAddToCart} disabled={!canAdvanceToReview} loading={isAddingToCart} />
                         </StagePanel>
                     </TabsContent>
                 </Tabs>

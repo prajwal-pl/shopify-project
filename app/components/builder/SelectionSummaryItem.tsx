@@ -11,20 +11,20 @@ interface SelectionSummaryItemProps {
 
 export function SelectionSummaryItem({ title, description, price, media, accent }: SelectionSummaryItemProps) {
     return (
-        <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-primary/20 bg-background/70 p-5 shadow-sm">
+        <div className="group flex flex-col gap-4 rounded-lg border-2 border-stone-200 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:border-stone-300">
             <div className="flex items-center gap-3">
                 {media ? (
-                    <div className="size-16 overflow-hidden rounded-xl border bg-muted/40">
+                    <div className="size-20 overflow-hidden rounded-lg border-2 border-stone-200 bg-stone-50 shadow-sm">
                         <img src={media} alt={title} className="size-full object-cover" loading="lazy" />
                     </div>
                 ) : (
-                    <div className="size-16 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40" />
+                    <div className="size-20 rounded-lg border-2 border-dashed border-stone-300 bg-stone-50" />
                 )}
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                         {title}
                     </span>
-                    <span className="text-base font-semibold text-foreground">
+                    <span className="text-lg font-bold text-stone-900">
                         {description}
                     </span>
                 </div>
@@ -37,7 +37,7 @@ export function SelectionSummaryItem({ title, description, price, media, accent 
                 ) : (
                     <span className="text-xs uppercase tracking-wide text-muted-foreground">Configured</span>
                 )}
-                <span className="text-lg font-semibold text-foreground">
+                <span className="text-xl font-bold text-stone-900">
                     {currencyFormatter.format(price)}
                 </span>
             </div>
