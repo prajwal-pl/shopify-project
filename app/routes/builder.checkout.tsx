@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigate } from "react-router";
 import { ShoppingBag, CreditCard, User, MapPin, Mail, Phone, ArrowLeft, Lock } from "lucide-react";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -9,6 +10,21 @@ import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Badge } from "~/components/ui/badge";
 import { currencyFormatter } from "~/components/builder/utils";
+import { logger } from "~/utils/logger";
+
+const checkoutSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50, "First name is too long"),
+  lastName: z.string().min(1, "Last name is required").max(50, "Last name is too long"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  address: z.string().min(5, "Address is required").max(200, "Address is too long"),
+  city: z.string().min(2, "City is required").max(100, "City name is too long"),
+  state: z.string().min(2, "State is required").max(50, "State name is too long"),
+  zipCode: z.string().min(5, "ZIP code must be at least 5 digits").max(10, "ZIP code is too long"),
+  country: z.string().min(2, "Country is required"),
+});
+
+type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 interface CartItem {
   id: string;
@@ -57,8 +73,9 @@ export default function BuilderCheckoutPage() {
   const { shop, cartData } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CheckoutFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -71,10 +88,18 @@ export default function BuilderCheckoutPage() {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+
+    if (errors[name as keyof CheckoutFormData]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
   const handleBackToCart = () => {
@@ -83,15 +108,29 @@ export default function BuilderCheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    const validation = checkoutSchema.safeParse(formData);
+
+    if (!validation.success) {
+      const fieldErrors: Partial<Record<keyof CheckoutFormData, string>> = {};
+      validation.error.errors.forEach((error) => {
+        const field = error.path[0] as keyof CheckoutFormData;
+        if (field) {
+          fieldErrors[field] = error.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      console.log("Processing checkout:", { formData, cartData });
-
       alert("Checkout functionality coming soon! This will integrate with Stripe for payment processing.");
 
     } catch (error) {
-      console.error("Checkout error:", error);
+      logger.error("Checkout error", { error: error instanceof Error ? error.message : String(error), shop });
       alert("Failed to process checkout. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -157,8 +196,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className="border-stone-200"
+                        className={`border-stone-200 ${errors.firstName ? 'border-red-500' : ''}`}
                       />
+                      {errors.firstName && (
+                        <p className="text-sm text-red-600">{errors.firstName}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName" className="text-sm font-medium text-stone-700">
@@ -170,8 +212,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        className="border-stone-200"
+                        className={`border-stone-200 ${errors.lastName ? 'border-red-500' : ''}`}
                       />
+                      {errors.lastName && (
+                        <p className="text-sm text-red-600">{errors.lastName}</p>
+                      )}
                     </div>
                   </div>
 
@@ -188,8 +233,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="border-stone-200 pl-10"
+                        className={`border-stone-200 pl-10 ${errors.email ? 'border-red-500' : ''}`}
                       />
+                      {errors.email && (
+                        <p className="text-sm text-red-600">{errors.email}</p>
+                      )}
                     </div>
                   </div>
 
@@ -206,8 +254,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="border-stone-200 pl-10"
+                        className={`border-stone-200 pl-10 ${errors.phone ? 'border-red-500' : ''}`}
                       />
+                      {errors.phone && (
+                        <p className="text-sm text-red-600">{errors.phone}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -234,8 +285,11 @@ export default function BuilderCheckoutPage() {
                       required
                       value={formData.address}
                       onChange={handleInputChange}
-                      className="border-stone-200"
+                      className={`border-stone-200 ${errors.address ? 'border-red-500' : ''}`}
                     />
+                    {errors.address && (
+                      <p className="text-sm text-red-600">{errors.address}</p>
+                    )}
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -249,8 +303,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.city}
                         onChange={handleInputChange}
-                        className="border-stone-200"
+                        className={`border-stone-200 ${errors.city ? 'border-red-500' : ''}`}
                       />
+                      {errors.city && (
+                        <p className="text-sm text-red-600">{errors.city}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="state" className="text-sm font-medium text-stone-700">
@@ -262,8 +319,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.state}
                         onChange={handleInputChange}
-                        className="border-stone-200"
+                        className={`border-stone-200 ${errors.state ? 'border-red-500' : ''}`}
                       />
+                      {errors.state && (
+                        <p className="text-sm text-red-600">{errors.state}</p>
+                      )}
                     </div>
                   </div>
 
@@ -278,8 +338,11 @@ export default function BuilderCheckoutPage() {
                         required
                         value={formData.zipCode}
                         onChange={handleInputChange}
-                        className="border-stone-200"
+                        className={`border-stone-200 ${errors.zipCode ? 'border-red-500' : ''}`}
                       />
+                      {errors.zipCode && (
+                        <p className="text-sm text-red-600">{errors.zipCode}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="country" className="text-sm font-medium text-stone-700">

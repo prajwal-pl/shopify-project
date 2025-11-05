@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "~/components/ui/separator";
 import { Badge } from "~/components/ui/badge";
 import { currencyFormatter } from "~/components/builder/utils";
+import { logger } from "~/utils/logger";
 
 interface CartItem {
   id: string;
@@ -74,7 +75,7 @@ export default function BuilderCartPage() {
 
       window.location.reload();
     } catch (error) {
-      console.error("Failed to remove item:", error);
+      logger.error("Failed to remove item", { error: error instanceof Error ? error.message : String(error), itemId, shop });
       setRemovingItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(itemId);
