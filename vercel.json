@@ -1,15 +1,7 @@
 {
   "buildCommand": "npm install && npx prisma generate && npm run build",
   "installCommand": "npm install",
-  "framework": null,
   "outputDirectory": "build/client",
-  "devCommand": "npm run dev",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/build/server/index.js"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -24,14 +16,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "build/server/index.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+  ]
 }
