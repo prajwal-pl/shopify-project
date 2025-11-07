@@ -1,7 +1,5 @@
 {
-  "buildCommand": "npm install && npx prisma generate && npm run build",
-  "installCommand": "npm install",
-  "outputDirectory": "build/client",
+  "buildCommand": "npx prisma generate && npm run build",
   "headers": [
     {
       "source": "/(.*)",
