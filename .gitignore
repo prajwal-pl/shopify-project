@@ -16,6 +16,7 @@ database.sqlite
 
 shopify.app.toml
 
+plan-files
 
 /extensions/*/dist
 
