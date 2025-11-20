@@ -56,6 +56,10 @@ export default defineConfig({
   ],
   build: {
     assetsInlineLimit: 0,
+    cssCodeSplit: false,
+  },
+  css: {
+    postcss: {},
   },
   optimizeDeps: {
     include: ["@shopify/app-bridge-react"],

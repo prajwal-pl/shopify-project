@@ -1,6 +1,6 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError, isRouteErrorResponse } from "react-router";
-import "./tailwind.css";
 import { Toaster } from "sonner";
+import "./tailwind.css";
 
 export default function App() {
   return (
