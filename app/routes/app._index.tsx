@@ -4,15 +4,22 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
+import { getOnboardingState } from "../services/onboarding.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
+
+  // Check onboarding status and redirect if not completed
+  const onboardingState = await getOnboardingState(shop);
+  if (!onboardingState.completed) {
+    return redirect("/app/onboarding");
+  }
 
   // Initialize default Ring Builder settings if they don't exist
   const existingSettings = await prisma.appSettings.findUnique({
