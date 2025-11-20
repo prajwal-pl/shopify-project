@@ -9,10 +9,10 @@ CREATE TABLE "Merchant" (
     "phone" TEXT,
     "status" TEXT NOT NULL DEFAULT 'active',
     "settings" TEXT,
-    "installedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "uninstalledAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "installedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "uninstalledAt" TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );
 
 -- CreateTable
@@ -22,11 +22,11 @@ CREATE TABLE "Subscription" (
     "shopifySubscriptionId" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "currentPeriodEnd" DATETIME NOT NULL,
+    "currentPeriodEnd" TIMESTAMP NOT NULL,
     "trialDaysRemaining" INTEGER NOT NULL DEFAULT 0,
     "features" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL,
     CONSTRAINT "Subscription_shop_fkey" FOREIGN KEY ("shop") REFERENCES "Merchant" ("shop") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

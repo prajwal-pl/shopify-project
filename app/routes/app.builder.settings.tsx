@@ -53,7 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   const { session } = await authenticate.admin(request);
   const { shop } = session;
-  
+
   const formData = await request.formData();
 
   console.log("=================================================");
@@ -69,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const engravingFee = parseFloat(formData.get("engravingFee") as string) || 0;
     const notifyOnConfig = formData.get("notifyOnConfig") === "true";
     const notificationEmail = formData.get("notificationEmail") as string || null;
-    
+
     // Parse side stones config
     const sideStones = formData.get("sideStones") as string || JSON.stringify({
       enabled: false,
@@ -78,6 +78,17 @@ export async function action({ request }: ActionFunctionArgs) {
       minQuantity: 0,
       maxQuantity: 50,
     });
+
+    // Parse theme settings
+    const primaryColor = formData.get("primaryColor") as string || "#6B2C3E";
+    const accentColor = formData.get("accentColor") as string || "#D4AF37";
+    const backgroundColor = formData.get("backgroundColor") as string || "#FFFFFF";
+    const textColor = formData.get("textColor") as string || "#000000";
+    const borderRadius = parseInt(formData.get("borderRadius") as string) || 8;
+    const fontFamily = formData.get("fontFamily") as string || "system-ui";
+    const buttonStyle = formData.get("buttonStyle") as string || "rounded";
+    const darkMode = formData.get("darkMode") === "true";
+    const customCSS = formData.get("customCSS") as string || null;
 
     // Upsert settings
     const settings = await prisma.appSettings.upsert({
@@ -90,6 +101,15 @@ export async function action({ request }: ActionFunctionArgs) {
         notifyOnConfig,
         notificationEmail,
         sideStones,
+        primaryColor,
+        accentColor,
+        backgroundColor,
+        textColor,
+        borderRadius,
+        fontFamily,
+        buttonStyle,
+        darkMode,
+        customCSS,
       },
       update: {
         builderEnabled,
@@ -98,6 +118,15 @@ export async function action({ request }: ActionFunctionArgs) {
         notifyOnConfig,
         notificationEmail,
         sideStones,
+        primaryColor,
+        accentColor,
+        backgroundColor,
+        textColor,
+        borderRadius,
+        fontFamily,
+        buttonStyle,
+        darkMode,
+        customCSS,
       },
     });
 
@@ -116,7 +145,7 @@ export default function SettingsPage() {
   const settings = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
-    "general" | "pricing" | "sideStones"
+    "general" | "pricing" | "sideStones" | "theme"
   >("general");
 
   // Check for saved query param
@@ -155,6 +184,12 @@ export default function SettingsPage() {
           onClick={() => setActiveTab("sideStones")}
         >
           Side Stones
+        </button>
+        <button
+          className={`tab ${activeTab === "theme" ? "active" : ""}`}
+          onClick={() => setActiveTab("theme")}
+        >
+          Theme & Branding
         </button>
       </div>
 
@@ -222,7 +257,7 @@ function SettingsForm({
   activeTab,
 }: {
   settings: any;
-  activeTab: "general" | "pricing" | "sideStones";
+  activeTab: "general" | "pricing" | "sideStones" | "theme";
 }) {
   const fetcher = useFetcher();
   const isSaving = fetcher.state !== "idle";
@@ -234,12 +269,17 @@ function SettingsForm({
   const [notificationEmail, setNotificationEmail] = useState(
     settings.notificationEmail || "",
   );
-  const [primaryColor, setPrimaryColor] = useState(
-    settings.primaryColor || "#000000",
-  );
-  const [accentColor, setAccentColor] = useState(
-    settings.accentColor || "#D4AF37",
-  );
+
+  // Theme settings
+  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor || "#6B2C3E");
+  const [accentColor, setAccentColor] = useState(settings.accentColor || "#D4AF37");
+  const [backgroundColor, setBackgroundColor] = useState(settings.backgroundColor || "#FFFFFF");
+  const [textColor, setTextColor] = useState(settings.textColor || "#000000");
+  const [borderRadius, setBorderRadius] = useState(settings.borderRadius || 8);
+  const [fontFamily, setFontFamily] = useState(settings.fontFamily || "system-ui");
+  const [buttonStyle, setButtonStyle] = useState(settings.buttonStyle || "rounded");
+  const [darkMode, setDarkMode] = useState(settings.darkMode || false);
+  const [customCSS, setCustomCSS] = useState(settings.customCSS || "");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,9 +289,18 @@ function SettingsForm({
     formData.append("markupPercent", markupPercent.toString());
     formData.append("notifyOnConfig", notifyOnConfig.toString());
     formData.append("notificationEmail", notificationEmail);
+    formData.append("sideStones", JSON.stringify(sideStones));
+
+    // Theme settings
     formData.append("primaryColor", primaryColor);
     formData.append("accentColor", accentColor);
-    formData.append("sideStones", JSON.stringify(sideStones));
+    formData.append("backgroundColor", backgroundColor);
+    formData.append("textColor", textColor);
+    formData.append("borderRadius", borderRadius.toString());
+    formData.append("fontFamily", fontFamily);
+    formData.append("buttonStyle", buttonStyle);
+    formData.append("darkMode", darkMode.toString());
+    formData.append("customCSS", customCSS);
 
     fetcher.submit(formData, { method: "post" });
   };
@@ -526,6 +575,305 @@ function SettingsForm({
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Theme & Branding Tab */}
+      {activeTab === "theme" && (
+        <div className="tab-content">
+          <div className="form-section">
+            <h3>Brand Colors</h3>
+            <p className="help-text" style={{ marginBottom: "16px" }}>
+              Customize the appearance of your Ring Builder to match your brand
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "16px",
+                marginBottom: "20px",
+              }}
+            >
+              <div className="form-field">
+                <label>Primary Color</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    style={{ width: "60px", height: "40px" }}
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    placeholder="#6B2C3E"
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <p className="help-text">Main brand color for buttons and highlights</p>
+              </div>
+
+              <div className="form-field">
+                <label>Accent Color</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    style={{ width: "60px", height: "40px" }}
+                  />
+                  <input
+                    type="text"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    placeholder="#D4AF37"
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <p className="help-text">Secondary color for accents</p>
+              </div>
+
+              <div className="form-field">
+                <label>Background Color</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    style={{ width: "60px", height: "40px" }}
+                  />
+                  <input
+                    type="text"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    placeholder="#FFFFFF"
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <p className="help-text">Page background color</p>
+              </div>
+
+              <div className="form-field">
+                <label>Text Color</label>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    style={{ width: "60px", height: "40px" }}
+                  />
+                  <input
+                    type="text"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    placeholder="#000000"
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                <p className="help-text">Primary text color</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Button Style</h3>
+            <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+              <button
+                type="button"
+                onClick={() => setButtonStyle("rounded")}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  border: buttonStyle === "rounded" ? "2px solid #2c6ecb" : "1px solid #c9cccf",
+                  borderRadius: "8px",
+                  background: buttonStyle === "rounded" ? "#f0f7ff" : "white",
+                  cursor: "pointer",
+                  fontWeight: buttonStyle === "rounded" ? "600" : "normal",
+                }}
+              >
+                Rounded
+              </button>
+              <button
+                type="button"
+                onClick={() => setButtonStyle("square")}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  border: buttonStyle === "square" ? "2px solid #2c6ecb" : "1px solid #c9cccf",
+                  borderRadius: "0px",
+                  background: buttonStyle === "square" ? "#f0f7ff" : "white",
+                  cursor: "pointer",
+                  fontWeight: buttonStyle === "square" ? "600" : "normal",
+                }}
+              >
+                Square
+              </button>
+              <button
+                type="button"
+                onClick={() => setButtonStyle("pill")}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  border: buttonStyle === "pill" ? "2px solid #2c6ecb" : "1px solid #c9cccf",
+                  borderRadius: "999px",
+                  background: buttonStyle === "pill" ? "#f0f7ff" : "white",
+                  cursor: "pointer",
+                  fontWeight: buttonStyle === "pill" ? "600" : "normal",
+                }}
+              >
+                Pill
+              </button>
+            </div>
+
+            <div className="form-field">
+              <label>Border Radius (px)</label>
+              <input
+                type="range"
+                min="0"
+                max="24"
+                step="2"
+                value={borderRadius}
+                onChange={(e) => setBorderRadius(parseInt(e.target.value))}
+                style={{ width: "100%", maxWidth: "300px" }}
+              />
+              <span style={{ marginLeft: "12px", fontWeight: "500" }}>{borderRadius}px</span>
+              <p className="help-text">Applies to cards and panels</p>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Typography</h3>
+            <div className="form-field">
+              <label>Font Family</label>
+              <select
+                value={fontFamily}
+                onChange={(e) => setFontFamily(e.target.value)}
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  padding: "10px 12px",
+                  border: "1px solid #c9cccf",
+                  borderRadius: "6px",
+                }}
+              >
+                <option value="system-ui">System Default</option>
+                <option value="Inter">Inter</option>
+                <option value="Roboto">Roboto</option>
+                <option value="'Playfair Display', serif">Playfair Display</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="'Open Sans'">Open Sans</option>
+              </select>
+              <p className="help-text">Choose a font for your Ring Builder</p>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Dark Mode</h3>
+            <div className="form-field">
+              <label className="toggle-label">
+                <input
+                  type="checkbox"
+                  checked={darkMode}
+                  onChange={(e) => setDarkMode(e.target.checked)}
+                />
+                <span>Enable Dark Mode</span>
+              </label>
+              <p className="help-text">Automatically adjust colors for dark backgrounds</p>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Live Preview</h3>
+            <div
+              style={{
+                padding: "30px",
+                borderRadius: `${borderRadius}px`,
+                background: backgroundColor,
+                color: textColor,
+                fontFamily: fontFamily,
+                border: "1px solid #e1e3e5",
+              }}
+            >
+              <h4 style={{ marginBottom: "12px", fontSize: "20px", fontWeight: "600" }}>
+                Sample Heading
+              </h4>
+              <p style={{ marginBottom: "20px", lineHeight: "1.6" }}>
+                This is how your Ring Builder will look with these theme settings. The colors,
+                fonts, and button styles will be applied to your storefront builder.
+              </p>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  style={{
+                    padding: "12px 24px",
+                    background: primaryColor,
+                    color: backgroundColor,
+                    border: "none",
+                    borderRadius:
+                      buttonStyle === "rounded"
+                        ? `${borderRadius}px`
+                        : buttonStyle === "pill"
+                        ? "999px"
+                        : "0px",
+                    fontFamily: fontFamily,
+                    fontWeight: "500",
+                    cursor: "pointer",
+                  }}
+                >
+                  Primary Button
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    padding: "12px 24px",
+                    background: accentColor,
+                    color: textColor,
+                    border: "none",
+                    borderRadius:
+                      buttonStyle === "rounded"
+                        ? `${borderRadius}px`
+                        : buttonStyle === "pill"
+                        ? "999px"
+                        : "0px",
+                    fontFamily: fontFamily,
+                    fontWeight: "500",
+                    cursor: "pointer",
+                  }}
+                >
+                  Accent Button
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Advanced Customization</h3>
+            <div className="form-field">
+              <label>Custom CSS (Optional)</label>
+              <textarea
+                value={customCSS}
+                onChange={(e) => setCustomCSS(e.target.value)}
+                rows={8}
+                placeholder=".builder-app {
+  /* Add custom CSS here */
+}"
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #c9cccf",
+                  borderRadius: "6px",
+                  fontFamily: "monospace",
+                  fontSize: "13px",
+                }}
+              />
+              <p className="help-text">
+                Add custom CSS to override default styles. Use with caution - invalid CSS may
+                break the builder appearance.
+              </p>
+            </div>
           </div>
         </div>
       )}

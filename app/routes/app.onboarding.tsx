@@ -1,12 +1,13 @@
 /**
  * Onboarding Flow
  *
- * Multi-step onboarding wizard for new merchants:
+ * Enhanced 6-step onboarding wizard for new merchants:
  * 1. Welcome
- * 2. Choose Plan
- * 3. Setup Metafields
- * 4. Add First Products (optional)
- * 5. Complete!
+ * 2. Create Ring Builder Page
+ * 3. Add to Navigation Menu
+ * 4. Customize Theme
+ * 5. Test the Builder
+ * 6. Complete!
  */
 
 import { useEffect, useState } from "react";
@@ -14,49 +15,78 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import { useLoaderData, useNavigate, useSubmit } from "react-router";
 import { authenticate } from "~/shopify.server";
 import {
-  getMerchantSettings,
-  updateMerchantSettings,
-  completeOnboarding,
-} from "~/services/merchant.server";
-import {
-  getSubscriptionStatus,
-  SUBSCRIPTION_PLANS,
-  type PlanName,
-} from "~/services/billing.server";
+  getOnboardingState,
+  completeStep,
+  createBuilderPageForOnboarding,
+  addBuilderPageToMenu,
+  markThemeConfigured,
+  markBuilderTested,
+  getCurrentStepInfo,
+  getOnboardingProgress,
+} from "~/services/onboarding.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const [settings, subscription] = await Promise.all([
-    getMerchantSettings(shop),
-    getSubscriptionStatus(shop),
-  ]);
+  const onboardingState = await getOnboardingState(shop);
+  const currentStepInfo = getCurrentStepInfo(onboardingState);
+  const progress = getOnboardingProgress(onboardingState);
 
   return {
     shop,
-    settings,
-    subscription,
-    plans: SUBSCRIPTION_PLANS,
+    onboardingState,
+    currentStepInfo,
+    progress,
   };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const shop = session.shop;
 
   const formData = await request.formData();
   const action = formData.get("action");
 
-  if (action === "updateStep") {
-    const step = parseInt(formData.get("step") as string);
-    await updateMerchantSettings(shop, { onboardingStep: step });
+  if (action === "completeWelcome") {
+    await completeStep(shop, "welcome");
     return Response.json({ success: true });
   }
 
-  if (action === "complete") {
-    await completeOnboarding(shop);
-    return Response.json({ success: true, redirect: "/app/builder/products" });
+  if (action === "createPage") {
+    const title = formData.get("title") as string;
+    const handle = formData.get("handle") as string;
+
+    const result = await createBuilderPageForOnboarding(admin, shop, {
+      title: title || "Design Your Ring",
+      handle: handle || "design-your-ring",
+    });
+
+    return Response.json(result);
+  }
+
+  if (action === "addToMenu") {
+    const menuHandle = formData.get("menuHandle") as string;
+    const result = await addBuilderPageToMenu(admin, shop, {
+      menuHandle: menuHandle || "main-menu",
+    });
+
+    return Response.json(result);
+  }
+
+  if (action === "skipMenu") {
+    await completeStep(shop, "menuAdded");
+    return Response.json({ success: true });
+  }
+
+  if (action === "themeConfigured") {
+    await markThemeConfigured(shop);
+    return Response.json({ success: true });
+  }
+
+  if (action === "tested") {
+    await markBuilderTested(shop);
+    return Response.json({ success: true });
   }
 
   return Response.json(
@@ -66,60 +96,111 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Onboarding() {
-  const { settings, plans } = useLoaderData<typeof loader>();
+  const { shop, onboardingState, currentStepInfo, progress } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const submit = useSubmit();
-  const [currentStep, setCurrentStep] = useState(
-    (settings as any)?.onboardingStep || 1,
-  );
+  const [pageTitle, setPageTitle] = useState("Design Your Ring");
+  const [pageHandle, setPageHandle] = useState("design-your-ring");
+  const [menuHandle, setMenuHandle] = useState("main-menu");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Redirect if already completed
+  const currentStep = onboardingState.currentStep;
+
   useEffect(() => {
-    if ((settings as any)?.onboardingCompleted) {
-      navigate("/app/builder/products");
+    if (onboardingState.completed) {
+      navigate("/app");
     }
-  }, [settings, navigate]);
+  }, [onboardingState, navigate]);
 
-  const handleNextStep = async () => {
-    const nextStep = currentStep + 1;
-    setCurrentStep(nextStep);
-
+  const handleWelcome = async () => {
     const formData = new FormData();
-    formData.append("action", "updateStep");
-    formData.append("step", nextStep.toString());
-    submit(formData, { method: "post" });
+    formData.append("action", "completeWelcome");
+    submit(formData, { method: "post", navigate: false });
   };
 
-  const handleComplete = async () => {
+  const handleCreatePage = async () => {
+    setIsLoading(true);
+    setError(null);
+
     const formData = new FormData();
-    formData.append("action", "complete");
-    submit(formData, { method: "post" });
+    formData.append("action", "createPage");
+    formData.append("title", pageTitle);
+    formData.append("handle", pageHandle);
+
+    const response = await fetch("/app/onboarding", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      window.location.reload();
+    } else {
+      setError(data.error || "Failed to create page");
+    }
+
+    setIsLoading(false);
   };
 
-  const handleSelectPlan = async (plan: PlanName) => {
-    try {
-      const response = await fetch("/api/admin/billing/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan,
-          returnUrl: `${window.location.origin}/app/onboarding?step=3`,
-        }),
-      });
+  const handleAddToMenu = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      const data = await response.json();
+    const formData = new FormData();
+    formData.append("action", "addToMenu");
+    formData.append("menuHandle", menuHandle);
 
-      if (data.success && data.confirmationUrl) {
-        // Redirect to Shopify billing confirmation
-        window.top!.location.href = data.confirmationUrl;
-      }
-    } catch (error) {
-      console.error("Error selecting plan:", error);
+    const response = await fetch("/app/onboarding", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      window.location.reload();
+    } else {
+      setError(data.error || "Failed to add to menu");
     }
+
+    setIsLoading(false);
+  };
+
+  const handleSkipMenu = async () => {
+    const formData = new FormData();
+    formData.append("action", "skipMenu");
+    submit(formData, { method: "post", navigate: false });
+  };
+
+  const handleGoToTheme = () => {
+    navigate("/app/builder/settings?tab=theme");
+  };
+
+  const handleMarkThemeConfigured = async () => {
+    const formData = new FormData();
+    formData.append("action", "themeConfigured");
+    submit(formData, { method: "post", navigate: false });
+  };
+
+  const handleTestBuilder = () => {
+    const builderUrl = onboardingState.builderPageUrl || `/builder?shop=${shop}`;
+    window.open(builderUrl, "_blank");
+  };
+
+  const handleMarkTested = async () => {
+    const formData = new FormData();
+    formData.append("action", "tested");
+    submit(formData, { method: "post", navigate: false });
+  };
+
+  const handleComplete = () => {
+    navigate("/app");
   };
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 20px" }}>
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 20px" }}>
       {/* Progress Indicator */}
       <div style={{ marginBottom: "40px" }}>
         <div
@@ -129,11 +210,11 @@ export default function Onboarding() {
             marginBottom: "10px",
           }}
         >
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3, 4, 5, 6].map((step) => (
             <div
               key={step}
               style={{
-                width: "22%",
+                width: "15%",
                 height: "4px",
                 backgroundColor: step <= currentStep ? "#6B2C3E" : "#E0E0E0",
                 borderRadius: "2px",
@@ -142,9 +223,15 @@ export default function Onboarding() {
           ))}
         </div>
         <p style={{ textAlign: "center", color: "#666", fontSize: "14px" }}>
-          Step {currentStep} of 4
+          Step {currentStep} of 6 - {progress}% Complete
         </p>
       </div>
+
+      {error && (
+        <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#ffe6e6", borderRadius: "8px", color: "#d32f2f" }}>
+          {error}
+        </div>
+      )}
 
       {/* Step 1: Welcome */}
       {currentStep === 1 && (
@@ -164,13 +251,14 @@ export default function Onboarding() {
               lineHeight: "1.8",
             }}
           >
-            <li>✅ No coding required - visual setup</li>
-            <li>✅ Add your first ring in under 30 seconds</li>
+            <li>✅ Create a Ring Builder page in your store</li>
+            <li>✅ Add it to your navigation menu</li>
+            <li>✅ Customize colors to match your brand</li>
             <li>✅ Start selling custom rings today</li>
-            <li>✅ Free 14-day trial (no credit card)</li>
           </ul>
           <button
-            onClick={handleNextStep}
+            onClick={handleWelcome}
+            disabled={onboardingState.steps.welcome}
             style={{
               backgroundColor: "#6B2C3E",
               color: "white",
@@ -179,14 +267,15 @@ export default function Onboarding() {
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
+              opacity: onboardingState.steps.welcome ? 0.5 : 1,
             }}
           >
-            Get Started →
+            {onboardingState.steps.welcome ? "✓ Completed" : "Get Started →"}
           </button>
         </div>
       )}
 
-      {/* Step 2: Choose Plan */}
+      {/* Step 2: Create Page */}
       {currentStep === 2 && (
         <div>
           <h1
@@ -196,7 +285,7 @@ export default function Onboarding() {
               textAlign: "center",
             }}
           >
-            Choose Your Plan
+            Create Ring Builder Page
           </h1>
           <p
             style={{
@@ -206,203 +295,179 @@ export default function Onboarding() {
               textAlign: "center",
             }}
           >
-            Start with a 14-day free trial. Cancel anytime.
+            We'll create a page in your Online Store where customers can design their rings.
           </p>
 
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "20px",
+              backgroundColor: "#F9F9F9",
+              padding: "30px",
+              borderRadius: "8px",
+              marginBottom: "30px",
             }}
           >
-            {Object.entries(plans).map(([key, planData]) => {
-              const plan = planData as (typeof SUBSCRIPTION_PLANS)[PlanName];
-              return (
-                <div
-                  key={key}
-                  style={{
-                    border:
-                      key === "professional"
-                        ? "3px solid #6B2C3E"
-                        : "1px solid #E0E0E0",
-                    borderRadius: "8px",
-                    padding: "30px 20px",
-                    position: "relative",
-                    backgroundColor: "white",
-                  }}
-                >
-                  {key === "professional" && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "-12px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        backgroundColor: "#6B2C3E",
-                        color: "white",
-                        padding: "4px 12px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      MOST POPULAR
-                    </div>
-                  )}
-                  <h3 style={{ fontSize: "20px", marginBottom: "10px" }}>
-                    {plan.name}
-                  </h3>
-                  <div
-                    style={{
-                      fontSize: "32px",
-                      fontWeight: "bold",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    ${plan.price}
-                    <span style={{ fontSize: "16px", color: "#666" }}>/mo</span>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "#666",
-                      marginBottom: "20px",
-                      minHeight: "40px",
-                    }}
-                  >
-                    {plan.description}
-                  </p>
-                  <ul
-                    style={{
-                      fontSize: "14px",
-                      marginBottom: "20px",
-                      listStyle: "none",
-                      padding: 0,
-                    }}
-                  >
-                    <li>
-                      ✓{" "}
-                      {plan.features.maxProducts === -1
-                        ? "Unlimited"
-                        : plan.features.maxProducts}{" "}
-                      products
-                    </li>
-                    <li>✓ {plan.trialDays}-day free trial</li>
-                    {plan.features.inventoryFeeds > 0 && (
-                      <li>
-                        ✓ {plan.features.inventoryFeeds} inventory feed
-                        {plan.features.inventoryFeeds > 1 ? "s" : ""}
-                      </li>
-                    )}
-                    {plan.features.analytics && <li>✓ Analytics dashboard</li>}
-                    {plan.features.customBranding && <li>✓ Custom branding</li>}
-                    {plan.features.prioritySupport && (
-                      <li>✓ Priority support</li>
-                    )}
-                    {plan.features.apiAccess && <li>✓ API access</li>}
-                  </ul>
-                  <button
-                    onClick={() => handleSelectPlan(key as PlanName)}
-                    style={{
-                      width: "100%",
-                      backgroundColor:
-                        key === "professional" ? "#6B2C3E" : "#F5F5F5",
-                      color: key === "professional" ? "white" : "#333",
-                      padding: "12px",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "16px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Start {plan.trialDays}-Day Trial
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <p
-            style={{
-              textAlign: "center",
-              marginTop: "20px",
-              fontSize: "14px",
-              color: "#666",
-            }}
-          >
-            No credit card required • Cancel anytime
-          </p>
-        </div>
-      )}
-
-      {/* Step 3: Setting Up */}
-      {currentStep === 3 && (
-        <div style={{ textAlign: "center" }}>
-          <h1 style={{ fontSize: "28px", marginBottom: "20px" }}>
-            Setting Up Your Store... ⚙️
-          </h1>
-          <p style={{ fontSize: "16px", color: "#666", marginBottom: "30px" }}>
-            We're configuring your ring builder. This will only take a moment.
-          </p>
-          <div style={{ marginBottom: "30px" }}>
-            <div
-              className="loading-spinner"
-              style={{ margin: "0 auto", width: "50px", height: "50px" }}
-            >
-              {/* Spinner animation */}
-              <div
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
+                Page Title
+              </label>
+              <input
+                type="text"
+                value={pageTitle}
+                onChange={(e) => setPageTitle(e.target.value)}
                 style={{
-                  border: "4px solid #f3f3f3",
-                  borderTop: "4px solid #6B2C3E",
-                  borderRadius: "50%",
-                  width: "50px",
-                  height: "50px",
-                  animation: "spin 1s linear infinite",
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "16px",
                 }}
-              ></div>
+                placeholder="Design Your Ring"
+              />
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
+                Page URL Handle
+              </label>
+              <input
+                type="text"
+                value={pageHandle}
+                onChange={(e) => setPageHandle(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "16px",
+                }}
+                placeholder="design-your-ring"
+              />
+              <p style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                URL: yourstore.com/pages/{pageHandle}
+              </p>
             </div>
           </div>
-          <ul
-            style={{
-              textAlign: "left",
-              maxWidth: "400px",
-              margin: "0 auto",
-              fontSize: "16px",
-              lineHeight: "1.8",
-            }}
-          >
-            <li>✅ Creating metafield definitions</li>
-            <li>✅ Setting up default configuration</li>
-            <li>✅ Preparing your dashboard</li>
-          </ul>
-          <button
-            onClick={handleNextStep}
-            style={{
-              marginTop: "40px",
-              backgroundColor: "#6B2C3E",
-              color: "white",
-              padding: "15px 40px",
-              fontSize: "18px",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Continue →
-          </button>
+
+          <div style={{ textAlign: "center" }}>
+            <button
+              onClick={handleCreatePage}
+              disabled={isLoading || onboardingState.steps.pageCreated}
+              style={{
+                backgroundColor: "#6B2C3E",
+                color: "white",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                opacity: isLoading || onboardingState.steps.pageCreated ? 0.5 : 1,
+              }}
+            >
+              {isLoading ? "Creating..." : onboardingState.steps.pageCreated ? "✓ Page Created" : "Create Page"}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Step 4: Complete */}
+      {/* Step 3: Add to Menu */}
+      {currentStep === 3 && (
+        <div>
+          <h1
+            style={{
+              fontSize: "28px",
+              marginBottom: "10px",
+              textAlign: "center",
+            }}
+          >
+            Add to Navigation Menu
+          </h1>
+          <p
+            style={{
+              fontSize: "16px",
+              color: "#666",
+              marginBottom: "30px",
+              textAlign: "center",
+            }}
+          >
+            Add your Ring Builder page to your store's navigation menu.
+          </p>
+
+          <div
+            style={{
+              backgroundColor: "#F9F9F9",
+              padding: "30px",
+              borderRadius: "8px",
+              marginBottom: "30px",
+            }}
+          >
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
+                Menu Handle
+              </label>
+              <input
+                type="text"
+                value={menuHandle}
+                onChange={(e) => setMenuHandle(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "16px",
+                }}
+                placeholder="main-menu"
+              />
+              <p style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                Common values: "main-menu", "footer"
+              </p>
+            </div>
+          </div>
+
+          <div style={{ textAlign: "center", display: "flex", gap: "10px", justifyContent: "center" }}>
+            <button
+              onClick={handleAddToMenu}
+              disabled={isLoading || onboardingState.steps.menuAdded}
+              style={{
+                backgroundColor: "#6B2C3E",
+                color: "white",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                opacity: isLoading || onboardingState.steps.menuAdded ? 0.5 : 1,
+              }}
+            >
+              {isLoading ? "Adding..." : onboardingState.steps.menuAdded ? "✓ Added to Menu" : "Add to Menu"}
+            </button>
+
+            <button
+              onClick={handleSkipMenu}
+              disabled={onboardingState.steps.menuAdded}
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Skip for Now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Customize Theme */}
       {currentStep === 4 && (
         <div style={{ textAlign: "center" }}>
-          <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>
-            You're All Set! 🎉
+          <h1 style={{ fontSize: "28px", marginBottom: "20px" }}>
+            Customize Your Theme
           </h1>
-          <p style={{ fontSize: "18px", color: "#666", marginBottom: "40px" }}>
-            Your Ring Builder is ready to use. Let's add your first product!
+          <p style={{ fontSize: "16px", color: "#666", marginBottom: "30px" }}>
+            Make the Ring Builder match your brand with custom colors and styling.
           </p>
           <div
             style={{
@@ -413,15 +478,146 @@ export default function Onboarding() {
             }}
           >
             <h3 style={{ fontSize: "20px", marginBottom: "15px" }}>
-              Quick Tips:
+              Theme Settings:
             </h3>
             <ul
               style={{ textAlign: "left", fontSize: "16px", lineHeight: "1.8" }}
             >
-              <li>📱 Add products using our visual forms (takes 30 seconds)</li>
-              <li>💎 Start with a few diamonds and settings</li>
-              <li>🎨 Customize your builder colors to match your brand</li>
-              <li>📧 Customer inquiries will appear in your dashboard</li>
+              <li>🎨 Primary & accent colors</li>
+              <li>✨ Button styles & borders</li>
+              <li>🌙 Dark mode support</li>
+              <li>💻 Custom CSS (advanced)</li>
+            </ul>
+          </div>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <button
+              onClick={handleGoToTheme}
+              style={{
+                backgroundColor: "#6B2C3E",
+                color: "white",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Go to Theme Settings
+            </button>
+
+            <button
+              onClick={handleMarkThemeConfigured}
+              disabled={onboardingState.steps.themeConfigured}
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                opacity: onboardingState.steps.themeConfigured ? 0.5 : 1,
+              }}
+            >
+              {onboardingState.steps.themeConfigured ? "✓ Configured" : "Skip for Now"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 5: Test Builder */}
+      {currentStep === 5 && (
+        <div style={{ textAlign: "center" }}>
+          <h1 style={{ fontSize: "28px", marginBottom: "20px" }}>
+            Test Your Ring Builder
+          </h1>
+          <p style={{ fontSize: "16px", color: "#666", marginBottom: "30px" }}>
+            Try out your Ring Builder to see how it works for customers.
+          </p>
+          <div
+            style={{
+              backgroundColor: "#F9F9F9",
+              padding: "30px",
+              borderRadius: "8px",
+              marginBottom: "30px",
+            }}
+          >
+            <h3 style={{ fontSize: "20px", marginBottom: "15px" }}>
+              What to Test:
+            </h3>
+            <ul
+              style={{ textAlign: "left", fontSize: "16px", lineHeight: "1.8" }}
+            >
+              <li>💍 Browse ring settings</li>
+              <li>💎 Select diamonds</li>
+              <li>🎨 Check if theme colors look good</li>
+              <li>📱 Test on mobile device</li>
+            </ul>
+          </div>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <button
+              onClick={handleTestBuilder}
+              style={{
+                backgroundColor: "#6B2C3E",
+                color: "white",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Open Ring Builder
+            </button>
+
+            <button
+              onClick={handleMarkTested}
+              disabled={onboardingState.steps.tested}
+              style={{
+                backgroundColor: "#f5f5f5",
+                color: "#333",
+                padding: "15px 40px",
+                fontSize: "18px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                opacity: onboardingState.steps.tested ? 0.5 : 1,
+              }}
+            >
+              {onboardingState.steps.tested ? "✓ Tested" : "Mark as Tested"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: Complete */}
+      {currentStep === 6 && (
+        <div style={{ textAlign: "center" }}>
+          <h1 style={{ fontSize: "32px", marginBottom: "20px" }}>
+            You're All Set! 🎉
+          </h1>
+          <p style={{ fontSize: "18px", color: "#666", marginBottom: "40px" }}>
+            Your Ring Builder is live and ready for customers!
+          </p>
+          <div
+            style={{
+              backgroundColor: "#F9F9F9",
+              padding: "30px",
+              borderRadius: "8px",
+              marginBottom: "30px",
+            }}
+          >
+            <h3 style={{ fontSize: "20px", marginBottom: "15px" }}>
+              Next Steps:
+            </h3>
+            <ul
+              style={{ textAlign: "left", fontSize: "16px", lineHeight: "1.8" }}
+            >
+              <li>📦 Add your ring settings as Shopify products</li>
+              <li>💎 Add diamonds and gemstones</li>
+              <li>🔧 Configure settings and side stones</li>
+              <li>📊 Monitor configurations in your dashboard</li>
+              <li>🌐 Get embed code for external sites</li>
             </ul>
           </div>
           <button
@@ -440,13 +636,6 @@ export default function Onboarding() {
           </button>
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

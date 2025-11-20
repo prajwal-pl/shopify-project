@@ -50,8 +50,16 @@ model Merchant {
   phone  String? // Contact phone
   status String  @default("active") // "active" | "suspended" | "cancelled"
 
-  // Onboarding tracking
-  settings String? // JSON: { onboardingCompleted, onboardingStep, etc. }
+  // Onboarding tracking (JSON structure)
+  settings String? // JSON: {
+  //   onboardingCompleted: boolean,
+  //   onboardingStep: number,
+  //   builderPageId: string (Shopify Page GID),
+  //   builderPageHandle: string (e.g., "design-your-ring"),
+  //   navMenuHandle: string (e.g., "main-menu"),
+  //   navMenuItemAdded: boolean,
+  //   themeConfigured: boolean
+  // }
 
   // Timestamps
   installedAt   DateTime  @default(now())
@@ -257,9 +265,16 @@ model AppSettings {
   notifyOnConfig    Boolean @default(false) // Email notification on configuration save
   notificationEmail String? // Email to receive notifications
 
-  // Customization (colors for storefront builder)
-  primaryColor String? // Hex color (e.g., "#000000")
-  accentColor  String? // Hex color (e.g., "#D4AF37")
+  // Theme & Branding Customization
+  primaryColor     String  @default("#6B2C3E") // Primary brand color
+  accentColor      String  @default("#D4AF37") // Accent/highlight color
+  backgroundColor  String  @default("#FFFFFF") // Background color
+  textColor        String  @default("#000000") // Text color
+  borderRadius     Int     @default(8) // Border radius in pixels
+  fontFamily       String  @default("system-ui") // Font family
+  buttonStyle      String  @default("rounded") // "rounded" | "square" | "pill"
+  darkMode         Boolean @default(false) // Enable dark mode
+  customCSS        String? // Custom CSS overrides (advanced)
 
   // Phase 2.0: Feature settings (stored as JSON)
   customerEngagement String? // JSON: { dropHintEnabled, requestInfoEnabled, notificationEmail, etc. }

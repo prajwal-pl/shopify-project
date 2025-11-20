@@ -11,16 +11,13 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 
 import { BuilderApp } from "../components/builder/BuilderApp";
+import { ThemeProvider } from "../components/builder/ThemeProvider";
 import { loadBuilderCatalog } from "~/services/builder-data.server";
+import { getThemeForShop, getDefaultTheme } from "~/services/theme.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const shop = url.searchParams.get("shop");
-
-  const catalog = await loadBuilderCatalog({
-    settingsLimit: 12,
-    diamondsLimit: 18,
-  });
 
   console.log("=================================================");
   console.log("💍 RING BUILDER - Storefront Page");
@@ -28,14 +25,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   console.log("=================================================");
 
   if (!shop) {
+    const catalog = await loadBuilderCatalog({
+      settingsLimit: 12,
+      diamondsLimit: 18,
+    });
+
     return {
       shop: "builder-store-103.myshopify.com",
       error: "No shop specified",
       catalog,
+      theme: getDefaultTheme(),
     };
   }
 
-  return { shop, catalog };
+  const [catalog, theme] = await Promise.all([
+    loadBuilderCatalog({
+      settingsLimit: 12,
+      diamondsLimit: 18,
+    }),
+    getThemeForShop(shop),
+  ]);
+
+  return { shop, catalog, theme };
 }
 
 // Add headers to allow iframe embedding
@@ -47,18 +58,20 @@ export function headers() {
 }
 
 export default function BuilderStorefrontPage() {
-  const { shop, catalog } = useLoaderData<typeof loader>();
+  const { shop, catalog, theme } = useLoaderData<typeof loader>();
 
   useIframeResizeSync();
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <BuilderApp
-        shop={shop}
-        settings={catalog.settings}
-        diamonds={catalog.diamonds}
-      />
-    </main>
+    <ThemeProvider theme={theme}>
+      <main className="min-h-screen bg-background text-foreground">
+        <BuilderApp
+          shop={shop}
+          settings={catalog.settings}
+          diamonds={catalog.diamonds}
+        />
+      </main>
+    </ThemeProvider>
   );
 }
 

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ring Builder - External Embed Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .demo-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .demo-header {
+      background: white;
+      padding: 30px;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .store-name {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: 18px;
+      color: #6B7280;
+      margin-bottom: 20px;
+    }
+
+    .demo-info {
+      background: #F3F4F6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .demo-info h3 {
+      font-size: 14px;
+      color: #374151;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .demo-info ul {
+      list-style: none;
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .demo-info li {
+      padding: 4px 0;
+    }
+
+    .demo-info li::before {
+      content: "✓ ";
+      color: #10B981;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .builder-container {
+      background: white;
+      padding: 40px;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .embed-instructions {
+      background: #FEF3C7;
+      border: 2px solid #F59E0B;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+
+    .embed-instructions h2 {
+      color: #92400E;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .embed-instructions p {
+      color: #92400E;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .embed-instructions code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .builder-wrapper {
+      position: relative;
+      min-height: 600px;
+    }
+
+    /* Placeholder styling */
+    .placeholder {
+      text-align: center;
+      padding: 60px 20px;
+      background: #F9FAFB;
+      border: 2px dashed #D1D5DB;
+      border-radius: 12px;
+    }
+
+    .placeholder h3 {
+      color: #374151;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .placeholder p {
+      color: #6B7280;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .placeholder-steps {
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+    }
+
+    .placeholder-steps h4 {
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .placeholder-steps ol {
+      color: #6B7280;
+      line-height: 1.8;
+    }
+
+    .placeholder-steps code {
+      background: #F3F4F6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #DC2626;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <!-- Header Section -->
+    <div class="demo-header">
+      <div class="store-name">💍 Your Jewelry Store</div>
+      <div class="tagline">Design Your Perfect Custom Ring</div>
+
+      <div class="demo-info">
+        <h3>🎯 External Embed Demo</h3>
+        <ul>
+          <li>This is a standalone HTML page (not Shopify)</li>
+          <li>Ring Builder is embedded via iframe</li>
+          <li>Fully functional and responsive</li>
+          <li>Automatically resizes to fit content</li>
+          <li>Works on WordPress, Wix, custom websites</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Builder Section -->
+    <div class="builder-container">
+      <div class="embed-instructions">
+        <h2>📋 How to Use This Template</h2>
+        <p><strong>Step 1:</strong> Go to your Ring Builder admin → <code>/app/builder/embed</code></p>
+        <p><strong>Step 2:</strong> Copy the embed code</p>
+        <p><strong>Step 3:</strong> Replace the placeholder below with your embed code</p>
+        <p><strong>Step 4:</strong> Save and open in browser</p>
+      </div>
+
+      <div class="builder-wrapper">
+        <!-- ========================================
+             REPLACE THIS SECTION WITH YOUR EMBED CODE
+             ========================================
+
+             Example embed code structure:
+
+             <iframe
+               src="http://localhost:PORT/embed/builder?shop=YOUR-STORE.myshopify.com"
+               style="width: 100%; min-height: 800px; border: none;"
+               title="Ring Builder"
+               id="ring-builder-iframe"
+               scrolling="no"
+             ></iframe>
+
+             <script>
+               window.addEventListener('message', function(e) {
+                 if (e.data.type === 'ring-builder-resize') {
+                   const iframe = document.getElementById('ring-builder-iframe');
+                   if (iframe) {
+                     iframe.style.height = e.data.height + 'px';
+                   }
+                 }
+               });
+             </script>
+        -->
+
+        <!-- PLACEHOLDER - Remove this div after pasting embed code -->
+        <div class="placeholder">
+          <h3>🎨 Paste Your Embed Code Here</h3>
+          <p>Follow the steps above to get your embed code</p>
+
+          <div class="placeholder-steps">
+            <h4>Quick Start:</h4>
+            <ol>
+              <li>Open your Ring Builder admin</li>
+              <li>Navigate to "Embed" section</li>
+              <li>Copy the generated iframe code</li>
+              <li>Paste it in this HTML file (replace this div)</li>
+              <li>Open in browser to see the builder!</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- PASTE YOUR EMBED CODE ABOVE THIS LINE -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional: Add some footer content -->
+  <div style="max-width: 1400px; margin: 40px auto 0; text-align: center; color: white;">
+    <p style="font-size: 14px; opacity: 0.9;">
+      Ring Builder Demo |
+      <a href="#" style="color: white;">Privacy Policy</a> |
+      <a href="#" style="color: white;">Terms of Service</a>
+    </p>
+  </div>
+</body>
+</html>

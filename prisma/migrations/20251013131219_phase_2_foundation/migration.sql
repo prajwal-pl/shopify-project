@@ -14,11 +14,11 @@ CREATE TABLE "CustomerInquiry" (
     "customerEmail" TEXT NOT NULL,
     "customerPhone" TEXT,
     "message" TEXT,
-    "preferredDate" DATETIME,
+    "preferredDate" TIMESTAMP,
     "preferredTime" TEXT,
     "status" TEXT NOT NULL DEFAULT 'new',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );
 
 -- RedefineTables
@@ -43,9 +43,9 @@ CREATE TABLE "new_Configuration" (
     "cartItemId" TEXT,
     "shareToken" TEXT,
     "shareCount" INTEGER NOT NULL DEFAULT 0,
-    "savedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "savedAt" TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );
 INSERT INTO "new_Configuration" ("cartItemId", "configurationId", "createdAt", "customerEmail", "customerId", "id", "metalType", "ringSize", "settingId", "settingPrice", "shareToken", "shop", "sideStonesConfig", "sideStonesPrice", "status", "stoneId", "stonePrice", "totalPrice", "updatedAt") SELECT "cartItemId", "configurationId", "createdAt", "customerEmail", "customerId", "id", "metalType", "ringSize", "settingId", "settingPrice", "shareToken", "shop", "sideStonesConfig", "sideStonesPrice", "status", "stoneId", "stonePrice", "totalPrice", "updatedAt" FROM "Configuration";
 DROP TABLE "Configuration";
@@ -80,8 +80,8 @@ CREATE TABLE "new_StoneMetadata" (
     "images" TEXT,
     "price" REAL NOT NULL,
     "available" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );
 INSERT INTO "new_StoneMetadata" ("available", "carat", "certificate", "certificateNumber", "certificateUrl", "clarity", "color", "createdAt", "cut", "depthPercent", "fluorescence", "id", "images", "measurements", "polish", "price", "productId", "shape", "shop", "stoneType", "symmetry", "tablePercent", "updatedAt") SELECT "available", "carat", "certificate", "certificateNumber", "certificateUrl", "clarity", "color", "createdAt", "cut", "depthPercent", "fluorescence", "id", "images", "measurements", "polish", "price", "productId", "shape", "shop", "stoneType", "symmetry", "tablePercent", "updatedAt" FROM "StoneMetadata";
 DROP TABLE "StoneMetadata";
