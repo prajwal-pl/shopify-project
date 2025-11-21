@@ -24,14 +24,17 @@
     const shop = "{{ shop.permanent_domain }}";
     const container = document.getElementById('ring-builder-app');
 
-    // For MVP: Load builder via iframe from app
-    // This is the simplest approach for testing
-    const appUrl = "{{ app.url }}";
+    // Use app proxy URL instead of {{ app.url }} which may not be available in theme extensions
+    // Customer accesses via: yourstore.com/apps/gem-finder/builder
+    const builderUrl = `/apps/gem-finder/builder`;
+
+    console.log('Ring Builder - Initializing with shop:', shop);
+    console.log('Ring Builder - Loading URL:', builderUrl);
 
     if (container) {
       container.innerHTML = `
         <iframe
-          src="${appUrl}/builder?shop=${shop}"
+          src="${builderUrl}"
           style="width: 100%; min-height: 800px; border: none; border-radius: 8px;"
           title="Ring Builder"
           id="ring-builder-iframe"
