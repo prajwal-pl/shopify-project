@@ -24,22 +24,53 @@
     const shop = "{{ shop.permanent_domain }}";
     const container = document.getElementById('ring-builder-app');
 
-    // Use app proxy URL instead of {{ app.url }} which may not be available in theme extensions
-    // Customer accesses via: yourstore.com/apps/gem-finder/builder
-    const builderUrl = `/apps/gem-finder/builder`;
+    // Try app proxy first, fallback to direct app URL if proxy not active
+    const proxyUrl = `/apps/gem-finder/builder`;
+    const fallbackUrl = `https://shopify-gem-finder.vercel.app/proxy/builder?shop=${shop}`;
 
     console.log('Ring Builder - Initializing with shop:', shop);
-    console.log('Ring Builder - Loading URL:', builderUrl);
+    console.log('Ring Builder - Trying proxy URL:', proxyUrl);
 
     if (container) {
-      container.innerHTML = `
-        <iframe
-          src="${builderUrl}"
-          style="width: 100%; min-height: 800px; border: none; border-radius: 8px;"
-          title="Ring Builder"
-          id="ring-builder-iframe"
-        ></iframe>
-      `;
+      // Try to load via app proxy first
+      const iframe = document.createElement('iframe');
+      iframe.src = proxyUrl;
+      iframe.style.cssText = 'width: 100%; min-height: 800px; border: none; border-radius: 8px;';
+      iframe.title = 'Ring Builder';
+      iframe.id = 'ring-builder-iframe';
+
+      // Fallback to direct URL if proxy fails to load
+      let fallbackTimeout;
+      iframe.addEventListener('error', function() {
+        console.log('⚠️ Proxy failed, switching to direct URL:', fallbackUrl);
+        iframe.src = fallbackUrl;
+      });
+
+      // Also set a timeout fallback in case proxy is not configured
+      fallbackTimeout = setTimeout(function() {
+        // Check if iframe loaded successfully by trying to access its contentWindow
+        try {
+          // If proxy is not working, we won't be able to detect it easily
+          // So we add a message listener to detect if the iframe loaded
+          const testLoaded = iframe.contentWindow;
+          if (!testLoaded) {
+            console.log('⚠️ Proxy timeout, switching to direct URL:', fallbackUrl);
+            iframe.src = fallbackUrl;
+          }
+        } catch(e) {
+          // Cross-origin error means it loaded from somewhere, which is good
+          console.log('✅ Iframe loaded (cross-origin security in effect)');
+        }
+      }, 3000);
+
+      // Clear timeout if iframe loads successfully
+      iframe.addEventListener('load', function() {
+        clearTimeout(fallbackTimeout);
+        console.log('✅ Ring Builder loaded successfully');
+      });
+
+      container.innerHTML = '';
+      container.appendChild(iframe);
 
       // Auto-resize iframe
       window.addEventListener('message', function(e) {
