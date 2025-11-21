@@ -49,11 +49,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { shop, catalog, theme };
 }
 
-// Add headers to allow iframe embedding
+// Allow iframe embedding from Shopify stores
+// DO NOT set X-Frame-Options as it conflicts with CSP and causes Firefox blocking
 export function headers() {
   return {
-    "X-Frame-Options": "ALLOWALL",
-    "Content-Security-Policy": "frame-ancestors *",
+    "Content-Security-Policy": "frame-ancestors https://*.myshopify.com https://admin.shopify.com",
   };
 }
 

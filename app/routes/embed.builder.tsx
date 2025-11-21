@@ -76,10 +76,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
-// Allow iframe embedding from any origin
+// Allow iframe embedding from any origin (external sites like WordPress)
+// DO NOT set X-Frame-Options as it conflicts with CSP and causes Firefox blocking
 export function headers() {
   return {
-    "X-Frame-Options": "ALLOWALL",
     "Content-Security-Policy": "frame-ancestors *",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
