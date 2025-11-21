@@ -6,16 +6,47 @@
  */
 
 import type { LoaderFunctionArgs } from "react-router";
+import { useLoaderData } from "react-router";
 import { authenticate } from "~/shopify.server";
-// import { BuilderApp } from "~/components/builder/BuilderApp";
+import { BuilderApp } from "~/components/builder/BuilderApp";
+import { ThemeProvider } from "~/components/builder/ThemeProvider";
+import { loadBuilderCatalog } from "~/services/builder-data.server";
+import { getThemeForShop } from "~/services/theme.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  console.log("🔍 [PREVIEW] Loading builder preview...");
+
   const { session } = await authenticate.admin(request);
-  return { shop: session.shop };
+  console.log("✅ [PREVIEW] Authenticated for shop:", session.shop);
+
+  const [catalog, theme] = await Promise.all([
+    loadBuilderCatalog({
+      settingsLimit: 12,
+      diamondsLimit: 18,
+    }),
+    getThemeForShop(session.shop),
+  ]);
+
+  console.log("✅ [PREVIEW] Loaded catalog:", {
+    settings: catalog.settings.length,
+    diamonds: catalog.diamonds.length,
+  });
+
+  return {
+    shop: session.shop,
+    catalog,
+    theme,
+  };
 }
 
 export default function BuilderPreviewPage() {
-  const shop = "builder-store-103.myshopify.com";
+  const { shop, catalog, theme } = useLoaderData<typeof loader>();
+
+  console.log("🎨 [PREVIEW] Rendering BuilderApp with:", {
+    shop,
+    settingsCount: catalog.settings.length,
+    diamondsCount: catalog.diamonds.length,
+  });
 
   return (
     <div style={{ padding: "20px", background: "#f9fafb", minHeight: "100vh" }}>
@@ -40,11 +71,13 @@ export default function BuilderPreviewPage() {
         </p>
       </div>
 
-      <div style={{ padding: "40px", textAlign: "center", background: "white", borderRadius: "12px" }}>
-        <h2>Ring Builder Preview - Under Reconstruction</h2>
-        <p>Components are being rebuilt from scratch...</p>
-      </div>
-      {/* <BuilderApp shop={shop} /> */}
+      <ThemeProvider theme={theme}>
+        <BuilderApp
+          shop={shop}
+          settings={catalog.settings}
+          diamonds={catalog.diamonds}
+        />
+      </ThemeProvider>
     </div>
   );
 }
