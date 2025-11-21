@@ -27,14 +27,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getThemeForShop(session.shop),
   ]);
 
+  const proxyImages = (items: any[]) => {
+    return items.map(item => ({
+      ...item,
+      images: item.images.map((img: string) =>
+        img.startsWith('http')
+          ? `/api/image-proxy?url=${encodeURIComponent(img)}`
+          : img
+      )
+    }));
+  };
+
+  const catalogWithProxiedImages = {
+    settings: proxyImages(catalog.settings),
+    diamonds: proxyImages(catalog.diamonds),
+  };
+
   console.log("✅ [PREVIEW] Loaded catalog:", {
-    settings: catalog.settings.length,
-    diamonds: catalog.diamonds.length,
+    settings: catalogWithProxiedImages.settings.length,
+    diamonds: catalogWithProxiedImages.diamonds.length,
   });
 
   return {
     shop: session.shop,
-    catalog,
+    catalog: catalogWithProxiedImages,
     theme,
   };
 }
